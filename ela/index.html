@@ -339,6 +339,228 @@
   body.boss-mode .quiz-prompt { border-left-color: var(--pink); }
   body.boss-mode .quiz-prompt .label { color: var(--pink); }
 
+  /* ---------- BOSS UPGRADE v10: phases, intro, banner, crits, defeat ---------- */
+  body.boss-enraged .boss-hud {
+    border-color: var(--red);
+    box-shadow: 0 0 32px rgba(255,82,48,0.45), inset 0 0 18px rgba(255,82,48,0.18);
+    animation: enrage-pulse 0.7s ease-in-out infinite alternate;
+  }
+  body.boss-enraged .quiz-prompt {
+    border-left-color: var(--red);
+    box-shadow: -3px 0 24px rgba(255,82,48,0.3);
+  }
+  body.boss-enraged::after {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(circle at center, transparent 40%, rgba(180,0,30,0.18) 100%);
+    pointer-events: none; z-index: 9000;
+    animation: enrage-vignette 1.2s ease-in-out infinite alternate;
+  }
+  @keyframes enrage-pulse {
+    from { filter: hue-rotate(0deg) saturate(1); }
+    to   { filter: hue-rotate(-14deg) saturate(1.35); }
+  }
+  @keyframes enrage-vignette {
+    from { opacity: 0.55; }
+    to   { opacity: 0.95; }
+  }
+  body.boss-low-hp .bh-avatar {
+    animation: low-hp-pulse 0.5s ease-in-out infinite alternate !important;
+    filter: drop-shadow(0 0 16px rgba(255,82,48,0.95));
+  }
+  @keyframes low-hp-pulse {
+    from { transform: scale(1); }
+    to   { transform: scale(1.2); }
+  }
+  .boss-hud .bh-hp-fill.danger {
+    background: linear-gradient(90deg, #ff3a3a, #ff7a3a) !important;
+    animation: hp-flash 0.45s linear infinite;
+  }
+  @keyframes hp-flash {
+    0%,100% { opacity: 1; }
+    50%     { opacity: 0.45; }
+  }
+  /* Boss banner for ENRAGE / DEFEAT events */
+  .boss-banner {
+    position: fixed; top: 16%; left: 50%;
+    transform: translate(-50%, -160%) scale(0.85);
+    background: linear-gradient(135deg, rgba(40,8,12,0.96), rgba(80,15,30,0.96));
+    border: 2px solid var(--red);
+    border-radius: 14px;
+    padding: 18px 30px;
+    z-index: 9999;
+    text-align: center;
+    box-shadow: 0 16px 64px rgba(255,51,102,0.5), 0 0 90px rgba(255,82,48,0.45);
+    opacity: 0; pointer-events: none;
+    transition: transform 0.45s cubic-bezier(0.2, 1.4, 0.3, 1), opacity 0.3s;
+    font-family: 'Press Start 2P', monospace;
+    min-width: 280px;
+  }
+  .boss-banner.show {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+  }
+  .boss-banner .bb-title {
+    font-size: 20px;
+    color: var(--lime);
+    text-shadow: 0 0 14px var(--lime), 0 0 28px rgba(223,255,0,0.5);
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+  .boss-banner.banner-defeat .bb-title { color: #ffd700; text-shadow: 0 0 18px #ffd700, 0 0 40px rgba(255,215,0,0.7); }
+  .boss-banner.banner-enrage .bb-title { color: var(--red); text-shadow: 0 0 14px var(--red), 0 0 36px rgba(255,82,48,0.7); }
+  .boss-banner .bb-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-dim);
+    letter-spacing: 1px;
+  }
+  /* Critical hit flash */
+  .crit-flash {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 9998;
+    background: radial-gradient(circle at center, rgba(255,215,0,0.4) 0%, rgba(255,215,0,0) 60%);
+    opacity: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .crit-flash.show { animation: crit-pop 0.7s ease-out forwards; }
+  .crit-flash .crit-text {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 34px;
+    color: #ffd700;
+    text-shadow: 0 0 24px #ffd700, 0 0 48px rgba(255,215,0,0.6), 0 4px 0 #000;
+    letter-spacing: 4px;
+    transform: scale(0.6) rotate(-12deg);
+  }
+  .crit-flash.show .crit-text { animation: crit-text 0.7s cubic-bezier(0.18,1.4,0.4,1) forwards; }
+  @keyframes crit-pop {
+    0%   { opacity: 0; }
+    20%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes crit-text {
+    0%   { transform: scale(0.3) rotate(-22deg); opacity: 0; }
+    30%  { transform: scale(1.3) rotate(-6deg); opacity: 1; }
+    60%  { transform: scale(1) rotate(-6deg); opacity: 1; }
+    100% { transform: scale(1.5) rotate(-6deg); opacity: 0; }
+  }
+  /* Boss intro cinematic */
+  .boss-intro {
+    position: fixed; inset: 0;
+    background: radial-gradient(circle at center, rgba(10,0,0,0.85) 0%, rgba(0,0,0,0.98) 70%);
+    z-index: 10000;
+    display: none;
+    align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  .boss-intro.show {
+    display: flex;
+    animation: intro-fade 1.8s ease-out forwards;
+  }
+  @keyframes intro-fade {
+    0%   { opacity: 0; }
+    15%  { opacity: 1; }
+    85%  { opacity: 1; }
+    100% { opacity: 0; visibility: hidden; }
+  }
+  .boss-intro .bi-card { text-align: center; font-family: 'Press Start 2P', monospace; }
+  .boss-intro .bi-warn {
+    font-size: 11px;
+    color: var(--red);
+    letter-spacing: 6px;
+    margin-bottom: 20px;
+    animation: warn-blink 0.35s steps(2) infinite;
+  }
+  @keyframes warn-blink { 50% { opacity: 0.25; } }
+  .boss-intro .bi-avatar {
+    font-size: 110px;
+    display: block;
+    filter: drop-shadow(0 0 28px var(--pink)) drop-shadow(0 0 60px rgba(255,45,149,0.5));
+    animation: avatar-zoom 1.6s ease-out;
+    margin-bottom: 18px;
+  }
+  @keyframes avatar-zoom {
+    0%   { transform: scale(0.3) rotate(-14deg); }
+    40%  { transform: scale(1.15) rotate(4deg); }
+    60%  { transform: scale(0.95) rotate(0deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  .boss-intro .bi-name {
+    font-size: 20px;
+    color: var(--lime);
+    text-shadow: 0 0 18px var(--lime), 0 0 36px rgba(223,255,0,0.5);
+    margin-bottom: 12px;
+    letter-spacing: 3px;
+  }
+  .boss-intro .bi-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    max-width: 340px;
+    margin: 0 auto;
+    line-height: 1.5;
+    letter-spacing: 1px;
+    padding: 0 20px;
+  }
+  /* Defeat shake on boss HUD */
+  .boss-hud.boss-defeat {
+    animation: boss-defeat 1.4s cubic-bezier(0.36,0.07,0.19,0.97);
+  }
+  @keyframes boss-defeat {
+    0%   { transform: translateX(0) scale(1); filter: brightness(1); }
+    20%  { transform: translateX(-12px) scale(1.04); filter: brightness(1.8) hue-rotate(40deg); }
+    40%  { transform: translateX(12px) scale(0.98); filter: brightness(2) saturate(2); }
+    60%  { transform: translateX(-8px) scale(1.06); filter: brightness(2.4) hue-rotate(60deg); }
+    80%  { transform: translateX(0) scale(0.6); filter: brightness(3) blur(2px); opacity: 0.6; }
+    100% { transform: translateX(0) scale(0); filter: brightness(1) blur(8px); opacity: 0; }
+  }
+  /* Focus meter (charges to enable critical hits) */
+  .boss-focus {
+    margin-top: 8px;
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px; color: var(--ink-dim);
+    letter-spacing: 1.2px;
+  }
+  .boss-focus .focus-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,215,0,0.25);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .boss-focus .focus-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ffb547, #ffd700);
+    box-shadow: 0 0 10px #ffd700;
+    transition: width 0.35s cubic-bezier(0.2,1.2,0.3,1);
+  }
+  .boss-focus.charged .focus-fill {
+    animation: focus-ready 0.5s ease-in-out infinite alternate;
+  }
+  .boss-focus.charged .focus-label {
+    color: #ffd700;
+    text-shadow: 0 0 8px #ffd700;
+  }
+  @keyframes focus-ready {
+    from { box-shadow: 0 0 10px #ffd700; }
+    to   { box-shadow: 0 0 22px #ffd700, 0 0 40px rgba(255,215,0,0.6); }
+  }
+  /* Crate jackpot reveal style */
+  .crate-reveal.crate-jackpot {
+    animation: jackpot-anim 1.4s cubic-bezier(0.2, 1.4, 0.3, 1) !important;
+    color: #ffd700 !important;
+    text-shadow: 0 0 18px #ffd700, 0 0 40px rgba(255,215,0,0.7) !important;
+  }
+  @keyframes jackpot-anim {
+    0%   { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+    25%  { transform: scale(1.4) rotate(8deg); opacity: 1; }
+    50%  { transform: scale(0.9) rotate(-3deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
   /* ---------- DAILY BADGE (topbar) ---------- */
   .daily-badge {
     display: flex; align-items: center; gap: 6px;
@@ -1656,6 +1878,28 @@
       </div>
       <div class="bh-hp-bar"><div class="bh-hp-fill" id="bossHpFill" style="width:100%"></div></div>
       <div class="bh-hp-label" id="bossHpLabel">300 / 300 HP</div>
+      <div class="boss-focus" id="bossFocus">
+        <span class="focus-label" id="bossFocusLabel">FOCUS 0/5</span>
+        <span class="focus-track"><span class="focus-fill" id="bossFocusFill"></span></span>
+      </div>
+    </div>
+    <!-- Boss intro cinematic (shown 1.8s when boss fight starts) -->
+    <div class="boss-intro" id="bossIntro" aria-hidden="true">
+      <div class="bi-card">
+        <div class="bi-warn">⚠ BOSS APPROACHING ⚠</div>
+        <div class="bi-avatar" id="biAvatar">👑</div>
+        <div class="bi-name" id="biName">FINAL BOSS</div>
+        <div class="bi-tag" id="biTag">Boss approaching.</div>
+      </div>
+    </div>
+    <!-- Boss banner for ENRAGE / DEFEAT mid-fight events -->
+    <div class="boss-banner" id="bossBanner" aria-hidden="true">
+      <div class="bb-title" id="bbTitle">💥 ENRAGED!</div>
+      <div class="bb-sub" id="bbSub">The boss unleashes their power.</div>
+    </div>
+    <!-- Critical hit flash overlay -->
+    <div class="crit-flash" id="critFlash" aria-hidden="true">
+      <div class="crit-text">⚡ CRITICAL!</div>
     </div>
     <div class="quiz-meta">
       <div>Q <span id="qNum">1</span> / <span id="qTotal">10</span></div>
@@ -2411,14 +2655,23 @@ function exitRange() {
 }
 
 // ---------- COINS + INVENTORY (v9) ----------
-function getCoins() { return parseInt(localStorage.getItem('cram_coins') || '0', 10); }
+function getCoins() {
+  const v = parseInt(localStorage.getItem('cram_coins') || '0', 10);
+  return Number.isFinite(v) && v >= 0 ? v : 0;
+}
 function addCoins(n) {
-  const cur = getCoins() + n;
+  // Guard: must be a positive finite integer
+  n = parseInt(n, 10);
+  if (!Number.isFinite(n) || n <= 0) return getCoins();
+  const cur = Math.min(getCoins() + n, 999999); // sanity cap
   localStorage.setItem('cram_coins', cur);
   renderCoinChip(true);
   return cur;
 }
 function spendCoins(n) {
+  // Guard: must be a positive finite integer — prevents spendCoins(-50) granting coins
+  n = parseInt(n, 10);
+  if (!Number.isFinite(n) || n <= 0) return false;
   const cur = getCoins();
   if (cur < n) return false;
   localStorage.setItem('cram_coins', cur - n);
@@ -2436,8 +2689,11 @@ function getInventory() {
 }
 function setInventory(inv) { localStorage.setItem('cram_inv', JSON.stringify(inv)); }
 function bumpInventory(key, by = 1) {
+  // Guard: prevent negative bumps which would silently shrink inventory
+  by = parseInt(by, 10);
+  if (!Number.isFinite(by) || by <= 0) return getInventory()[key] || 0;
   const inv = getInventory();
-  inv[key] = (inv[key] || 0) + by;
+  inv[key] = Math.min((inv[key] || 0) + by, 9999);
   setInventory(inv);
   return inv[key];
 }
@@ -2445,6 +2701,7 @@ function useInventory(key) {
   const inv = getInventory();
   if (!inv[key] || inv[key] <= 0) return false;
   inv[key]--;
+  if (inv[key] < 0) inv[key] = 0;
   setInventory(inv);
   return true;
 }
@@ -2462,8 +2719,25 @@ const SHOP_ITEMS = [
   { id: 'extra_life',    icon: '❤️', name: 'EXTRA LIFE',   desc: 'Banked. Next Survival/Range/Blitz/Boss starts with +1 life.', cost: 10, stack: true },
   { id: 'streak_shield', icon: '🛡️', name: 'STREAK SHIELD', desc: 'Auto-protects your daily streak through one missed day.',     cost: 15, stack: true },
   { id: 'hint_pack',     icon: '💡', name: 'HINT PACK x3',  desc: 'Three free hints for Type It. Cost no points to use.',         cost: 5,  stack: true, grants: { hint: 3 } },
-  { id: 'mystery_crate', icon: '🎁', name: 'MYSTERY CRATE', desc: 'Open for a random 5–25 coin payout. Pure dopamine.',           cost: 8,  stack: false },
+  { id: 'mystery_crate', icon: '🎁', name: 'MYSTERY CRATE', desc: 'Roll for coins, hints, lives, shields, or a 1% JACKPOT. Max 5/day.', cost: 8,  stack: false },
 ];
+
+// Mystery Crate daily counter — prevents the infinite-coin grind exploit
+function getMysteryDaily() {
+  const today = new Date().toDateString();
+  let log;
+  try { log = JSON.parse(localStorage.getItem('cram_mystery_log') || '{}'); }
+  catch (e) { log = {}; }
+  if (log.date !== today) { log.date = today; log.count = 0; }
+  return log;
+}
+function bumpMysteryDaily() {
+  const log = getMysteryDaily();
+  log.count++;
+  localStorage.setItem('cram_mystery_log', JSON.stringify(log));
+  return log.count;
+}
+const MYSTERY_DAILY_CAP = 5;
 
 function openShop() {
   Sound.click();
@@ -2508,19 +2782,54 @@ function renderShop() {
 function buyShopItem(id) {
   const item = SHOP_ITEMS.find(x => x.id === id);
   if (!item) return;
+  // Daily cap check happens BEFORE coins are charged
+  if (item.id === 'mystery_crate') {
+    const log = getMysteryDaily();
+    if (log.count >= MYSTERY_DAILY_CAP) {
+      Sound.wrong();
+      showSnack(`Daily mystery crate cap (${MYSTERY_DAILY_CAP}/day) — back tomorrow`);
+      return;
+    }
+  }
   if (!spendCoins(item.cost)) { Sound.wrong(); showSnack('Not enough coins'); return; }
   Sound.match();
   if (item.id === 'mystery_crate') {
-    const win = 5 + Math.floor(Math.random() * 21); // 5..25
-    addCoins(win);
+    bumpMysteryDaily();
+    // Variable-reward roll. Tuned for negative EV vs cost so it can't be grinded.
+    // EV ~6.45 coin-value vs 8 cost = -1.55/roll, plus daily cap.
+    const roll = Math.random();
+    let result = '', big = false;
+    if (roll < 0.01) {                      // 1% JACKPOT
+      addCoins(50);
+      result = '🎰 JACKPOT! +50 💰';
+      big = true;
+      fireConfetti(160);
+      Sound.victory();
+    } else if (roll < 0.06) {               // 5% Streak Shield
+      bumpInventory('streak_shield', 1);
+      result = '🛡️ STREAK SHIELD!';
+      fireConfetti(80);
+    } else if (roll < 0.16) {               // 10% Extra Life
+      bumpInventory('extra_life', 1);
+      result = '❤️ EXTRA LIFE!';
+      fireConfetti(80);
+    } else if (roll < 0.41) {               // 25% Hint Pack
+      bumpInventory('hint', 3);
+      result = '💡 +3 HINTS!';
+      fireConfetti(40);
+    } else {                                // 59% Small coin payout 1–9
+      const win = 1 + Math.floor(Math.random() * 9);
+      addCoins(win);
+      result = `🎁 +${win} 💰`;
+      fireConfetti(20);
+    }
     const rev = $('crateReveal');
     if (rev) {
-      rev.innerHTML = `🎁 +${win} 💰`;
-      rev.className = 'crate-reveal';
+      rev.innerHTML = result;
+      rev.className = 'crate-reveal' + (big ? ' crate-jackpot' : '');
       void rev.offsetWidth;
       rev.classList.add('crate-reveal');
     }
-    fireConfetti(40);
   } else if (item.id === 'hint_pack') {
     bumpInventory('hint', 3);
   } else {
@@ -3514,17 +3823,29 @@ function quickPlay() {
   else if (pick.mode === 'flash') startFlash();
 }
 
-// ---------- FINAL BOSS (v9 upgrade) ----------
+// ---------- FINAL BOSS (v10: phases, crits, intro, defeat anim) ----------
 const BOSS_UNLOCK_MASTERY = 25;
 const BOSSES = [
-  { id: 1, name: 'THE FORGETTER',   avatar: '🧟', hp: 200, qTime: 8000, dmg: 18, unlockAt: 25 },
-  { id: 2, name: 'PROF. DRILLMASTER', avatar: '🤖', hp: 320, qTime: 7000, dmg: 20, unlockAt: 50 },
-  { id: 3, name: 'DR. FINAL',       avatar: '👹', hp: 450, qTime: 6000, dmg: 22, unlockAt: 80 },
+  { id: 1, name: 'THE FORGETTER',   avatar: '🧟', hp: 200, qTime: 8000, dmg: 18, unlockAt: 25,
+    tag: 'Eats memories. Don\'t let it have yours.', kicker: 'You barely remember its name.' },
+  { id: 2, name: 'PROF. DRILLMASTER', avatar: '🤖', hp: 320, qTime: 7000, dmg: 20, unlockAt: 50,
+    tag: 'Speeds you up until you break. Stay sharp.', kicker: 'The clock is the real enemy.' },
+  { id: 3, name: 'DR. FINAL',       avatar: '👹', hp: 450, qTime: 6000, dmg: 22, unlockAt: 80,
+    tag: 'The last boss. Only mastery gets through.', kicker: 'Everything you\'ve learned, here.' },
 ];
+const FOCUS_MAX = 5;          // hit streak threshold for guaranteed critical
+const CRIT_FAST_MS = 2000;    // answers under this time = critical hit
+const CRIT_MULT = 1.5;
+const ENRAGE_THRESHOLD = 0.5; // boss enters phase 2 at 50% HP
+const LOW_HP_THRESHOLD = 0.3; // visual low-hp warning at 30% HP
 let bossMode = false;
 let bossActive = null;       // BOSS object currently being fought
 let bossHP = 0, bossMaxHP = 0;
 let bossLives = 3;
+let bossPhase = 1;           // 1 = normal, 2 = enraged
+let bossFocus = 0;           // 0..FOCUS_MAX charge meter
+let bossOriginalQTime = 0;   // baseline qTime so we can re-scale on phase change
+let bossQuestionStartedAt = 0;
 let _bossPrevMusicTrack = null;
 function isBossUnlocked() { return getStat('terms_mastered') >= BOSS_UNLOCK_MASTERY; }
 function getCurrentBoss() {
@@ -3568,6 +3889,10 @@ function startBoss() {
   bossHP = bossActive.hp;
   bossMaxHP = bossActive.hp;
   bossLives = 3;
+  bossPhase = 1;
+  bossFocus = 0;
+  bossOriginalQTime = bossActive.qTime; // remember baseline so enrage can scale
+  document.body.classList.remove('boss-enraged', 'boss-low-hp');
   // Apply banked extra life if user has one
   if (useInventory('extra_life')) { bossLives++; showSnack('❤️ Extra life applied!'); }
   // Switch to CHASE music for the fight
@@ -3583,15 +3908,88 @@ function startBoss() {
   qIdx = 0; qScore = 0; qStreak = 0; qBestStreak = 0; qCorrect = 0; lastCorrectPos = -1;
   $('qTotal').textContent = '∞';
   $('quiz').querySelector('.screen-title').textContent = '// 👑 BOSS FIGHT';
-  // Reveal boss HUD
+  // Reveal boss HUD with focus meter reset
   $('bossHud').hidden = false;
+  $('bossHud').classList.remove('boss-defeat');
   $('bossAvatar').textContent = bossActive.avatar;
   $('bossName').textContent = bossActive.name;
   $('bossLives').textContent = '❤'.repeat(bossLives);
   $('bossHpFill').style.width = '100%';
+  $('bossHpFill').classList.remove('danger');
   $('bossHpLabel').textContent = `${bossHP} / ${bossMaxHP} HP`;
-  Sound.click(); showScreen('quiz'); nextQuestion();
+  renderBossFocus();
+  Sound.click();
+  showScreen('quiz');
+  // Show intro cinematic, THEN start the fight (~1.6s later so the avatar zoom finishes)
+  playBossIntro(bossActive, () => { nextQuestion(); });
   unlock('boss_started');
+}
+
+function playBossIntro(boss, done) {
+  const intro = $('bossIntro');
+  if (!intro) { if (done) done(); return; }
+  $('biAvatar').textContent = boss.avatar;
+  $('biName').textContent = boss.name;
+  $('biTag').textContent = boss.tag || 'Boss approaching.';
+  intro.classList.remove('show');
+  void intro.offsetWidth;
+  intro.classList.add('show');
+  Sound.wrong(); // low rumble cue
+  setTimeout(() => { intro.classList.remove('show'); }, 1800);
+  setTimeout(() => { if (done) done(); }, 1600);
+}
+
+function showBossBanner(title, sub, variant) {
+  const banner = $('bossBanner');
+  if (!banner) return;
+  $('bbTitle').textContent = title;
+  $('bbSub').textContent = sub;
+  banner.classList.remove('show', 'banner-defeat', 'banner-enrage');
+  if (variant) banner.classList.add('banner-' + variant);
+  void banner.offsetWidth;
+  banner.classList.add('show');
+  setTimeout(() => banner.classList.remove('show'), 1800);
+}
+
+function flashCrit() {
+  const c = $('critFlash');
+  if (!c) return;
+  c.classList.remove('show');
+  void c.offsetWidth;
+  c.classList.add('show');
+}
+
+function renderBossFocus() {
+  const fill = $('bossFocusFill');
+  const label = $('bossFocusLabel');
+  const wrap = $('bossFocus');
+  if (!fill || !label || !wrap) return;
+  fill.style.width = (bossFocus / FOCUS_MAX * 100) + '%';
+  const charged = bossFocus >= FOCUS_MAX;
+  label.textContent = charged ? 'FOCUS ⚡ READY!' : `FOCUS ${bossFocus}/${FOCUS_MAX}`;
+  wrap.classList.toggle('charged', charged);
+}
+
+function bossEnterPhase2() {
+  if (bossPhase !== 1) return;
+  bossPhase = 2;
+  document.body.classList.add('boss-enraged');
+  // Tighten the timer 25% in phase 2 — pressure rises
+  if (bossActive) bossActive.qTime = Math.max(2500, Math.round(bossOriginalQTime * 0.75));
+  showBossBanner('💥 ENRAGED!', `${bossActive.name} is at half HP — pace just jumped`, 'enrage');
+  Sound.wrong();
+}
+
+function bossTriggerDefeat() {
+  const hud = $('bossHud');
+  if (hud) {
+    hud.classList.remove('boss-hit');
+    void hud.offsetWidth;
+    hud.classList.add('boss-defeat');
+  }
+  showBossBanner('🏆 DEFEATED', bossActive ? (bossActive.kicker || 'Boss down.') : 'Boss down.', 'defeat');
+  fireConfetti(180);
+  Sound.victory();
 }
 function renderBossHud() {
   if (!bossActive) return;
@@ -3600,13 +3998,31 @@ function renderBossHud() {
   $('bossHpLabel').textContent = `${Math.max(0, bossHP)} / ${bossMaxHP} HP`;
   $('bossLives').textContent = '❤'.repeat(Math.max(0, bossLives)) || '—';
 }
-function bossDamage(streak) {
-  const dmg = (bossActive ? bossActive.dmg : 18) + (streak * 4);
+function bossDamage(streak, opts) {
+  opts = opts || {};
+  const base = (bossActive ? bossActive.dmg : 18) + (streak * 4);
+  const isCrit = !!opts.isCritical;
+  const dmg = Math.round(base * (isCrit ? CRIT_MULT : 1));
   bossHP -= dmg;
   const hud = $('bossHud');
   hud.classList.remove('boss-hit'); void hud.offsetWidth; hud.classList.add('boss-hit');
   renderBossHud();
-  return dmg;
+  // Phase 2 transition at 50% HP
+  if (bossPhase === 1 && bossHP <= bossMaxHP * ENRAGE_THRESHOLD && bossHP > 0) {
+    bossEnterPhase2();
+  }
+  // Low-HP visual warning
+  if (bossHP <= bossMaxHP * LOW_HP_THRESHOLD && bossHP > 0) {
+    document.body.classList.add('boss-low-hp');
+    const fill = $('bossHpFill');
+    if (fill) fill.classList.add('danger');
+  }
+  // Critical hit visual + bonus score
+  if (isCrit) {
+    flashCrit();
+    qScore += 25; // crit bonus
+  }
+  return { dmg, isCrit };
 }
 function bossAttack() {
   bossLives--;
@@ -3616,9 +4032,17 @@ function bossAttack() {
 function exitBossMode() {
   bossMode = false;
   bossActive = null;
-  document.body.classList.remove('boss-mode');
+  bossPhase = 1;
+  bossFocus = 0;
+  document.body.classList.remove('boss-mode', 'boss-enraged', 'boss-low-hp');
   $('quiz').querySelector('.screen-title').textContent = '// SPEED QUIZ';
-  const hud = $('bossHud'); if (hud) hud.hidden = true;
+  const hud = $('bossHud');
+  if (hud) {
+    hud.hidden = true;
+    hud.classList.remove('boss-defeat', 'boss-hit');
+  }
+  const fill = $('bossHpFill');
+  if (fill) fill.classList.remove('danger');
   if (_bossPrevMusicTrack) {
     Sound.setTrack(_bossPrevMusicTrack);
     _bossPrevMusicTrack = null;
@@ -4017,6 +4441,7 @@ function nextQuestion() {
     b.onclick = e => answer(opt === t, b, e);
     wrap.appendChild(b);
   });
+  bossQuestionStartedAt = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
   startQTimer();
 }
 function startQTimer() {
@@ -4066,10 +4491,29 @@ function answer(correct, btn, ev) {
   // Boss mode: damage on correct, lose a life on wrong; end conditions checked
   if (bossMode && bossActive) {
     if (correct) {
-      const dmg = bossDamage(qStreak);
-      if (bossHP <= 0) { setTimeout(endQuiz, 800); return; }
+      // Crit detection: answer faster than CRIT_FAST_MS, OR focus meter is fully charged
+      const elapsed = bossQuestionStartedAt
+        ? ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - bossQuestionStartedAt
+        : 9999;
+      const fastCrit = elapsed < CRIT_FAST_MS;
+      const focusCrit = bossFocus >= FOCUS_MAX;
+      const isCrit = fastCrit || focusCrit;
+      bossDamage(qStreak, { isCritical: isCrit });
+      // Focus charging: spend it on crit, otherwise +1 (cap at FOCUS_MAX)
+      if (focusCrit) bossFocus = 0;
+      else bossFocus = Math.min(FOCUS_MAX, bossFocus + 1);
+      renderBossFocus();
+      if (bossHP <= 0) {
+        bossTriggerDefeat();
+        // Hold the defeat anim for ~1.6s before showing the result screen
+        setTimeout(endQuiz, 1700);
+        return;
+      }
     } else {
       bossAttack();
+      // Wrong answer drains focus
+      bossFocus = Math.max(0, bossFocus - 2);
+      renderBossFocus();
       if (bossLives <= 0) { setTimeout(endQuiz, 1000); return; }
     }
   }
