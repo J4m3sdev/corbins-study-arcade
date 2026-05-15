@@ -818,6 +818,101 @@
     from { box-shadow: 0 0 10px #ffd700; }
     to   { box-shadow: 0 0 22px #ffd700, 0 0 40px rgba(255,215,0,0.6); }
   }
+  /* Wrong-answer teaching modal — pauses gameplay so Corbin actually learns */
+  .wrong-modal {
+    position: fixed; inset: 0;
+    background: rgba(8,4,2,0.85);
+    z-index: 10005;
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .wrong-modal.active {
+    display: flex;
+    animation: wm-fade-in 0.2s ease;
+  }
+  @keyframes wm-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .wrong-modal .wm-card {
+    max-width: 540px; width: 100%;
+    background: var(--bg-2);
+    border: 3px solid var(--red);
+    border-radius: 14px;
+    padding: 32px 28px 24px;
+    position: relative;
+    box-shadow: 0 24px 80px rgba(255,82,48,0.4), 0 0 120px rgba(255,82,48,0.25);
+    animation: wm-pop 0.4s cubic-bezier(0.18,1.4,0.4,1);
+  }
+  @keyframes wm-pop {
+    from { transform: scale(0.6) rotate(-2deg); opacity: 0; }
+    to   { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  .wrong-modal .wm-stamp {
+    position: absolute;
+    top: -16px; left: 50%;
+    transform: translateX(-50%) rotate(-3deg);
+    background: var(--red);
+    color: var(--bg);
+    padding: 8px 22px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    letter-spacing: 3px;
+    border: 3px solid var(--bg);
+    box-shadow: 0 6px 20px rgba(255,82,48,0.5);
+  }
+  .wrong-modal .wm-stamp.timeout-stamp {
+    background: var(--orange);
+    color: var(--bg);
+  }
+  .wrong-modal .wm-section {
+    margin-top: 14px;
+  }
+  .wrong-modal .wm-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 6px;
+  }
+  .wrong-modal .wm-term {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(15px, 2.4vw, 22px);
+    line-height: 1.3;
+    color: var(--lime);
+    text-shadow: 0 0 16px rgba(244,201,93,0.45);
+    margin-bottom: 6px;
+  }
+  .wrong-modal .wm-def {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .wrong-modal .wm-close {
+    margin-top: 22px;
+    width: 100%;
+    padding: 14px 18px;
+    background: var(--lime);
+    color: var(--bg);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(244,201,93,0.32);
+    transition: transform 0.18s, box-shadow 0.18s;
+  }
+  .wrong-modal .wm-close:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(244,201,93,0.42);
+  }
+  .wrong-modal .wm-close:active { transform: translateY(0); }
+
   /* Crate jackpot reveal style */
   .crate-reveal.crate-jackpot {
     animation: jackpot-anim 1.4s cubic-bezier(0.2, 1.4, 0.3, 1) !important;
@@ -2189,6 +2284,21 @@
     <!-- Critical hit flash overlay -->
     <div class="crit-flash" id="critFlash" aria-hidden="true">
       <div class="crit-text">⚡ CRITICAL!</div>
+    </div>
+    <!-- Wrong-answer teaching modal — pauses the game so Corbin sees the right answer -->
+    <div class="wrong-modal" id="wrongModal" aria-hidden="true">
+      <div class="wm-card">
+        <div class="wm-stamp" id="wmStamp">WRONG</div>
+        <div class="wm-section">
+          <div class="wm-label" id="wmLabel">The correct answer was</div>
+          <div class="wm-term" id="wmTerm">—</div>
+        </div>
+        <div class="wm-section">
+          <div class="wm-label">Definition</div>
+          <div class="wm-def" id="wmDef">—</div>
+        </div>
+        <button class="wm-close" id="wmClose" onclick="closeWrongModal()">GOT IT — CONTINUE ▶</button>
+      </div>
     </div>
     <div class="quiz-meta">
       <div>Q <span id="qNum">1</span> / <span id="qTotal">10</span></div>
@@ -3795,14 +3905,70 @@ function renderStats() {
 
 // ---------- ACHIEVEMENTS ----------
 function getUnlocked() { return JSON.parse(localStorage.getItem('cram_achv') || '[]'); }
+// Achievement coin value: legendary > hard > medium > easy
+function coinsForAchievement(id) {
+  const legendary = ['boss_legend','boss_perfect','centurion','games_200','study_2hr','study_streak_7','topic_dominator','all_modes','all_themes','range_perfect','memory_speed'];
+  const hard      = ['streak_15','streak_25','blitz_25','blitz_50','daily_done','range_sharp','typist','speed_demon','perfect_quiz','match_perfect','memory_perfect','boss_started'];
+  const medium    = ['streak_10','boss_started','drilled_50','audiophile'];
+  const easy      = ['first_game','theme_swap','range_started','memory_started','blitz_started','welcome_aboard','name_change','night_owl','early_bird','streak_5'];
+  if (legendary.includes(id)) return 10;
+  if (hard.includes(id))      return 5;
+  if (medium.includes(id))    return 3;
+  if (easy.includes(id))      return 2;
+  return 3; // safe default for anything not categorized
+}
 function unlock(id) {
   const got = getUnlocked();
   if (got.includes(id)) return false;
   got.push(id);
   localStorage.setItem('cram_achv', JSON.stringify(got));
   const a = ACHIEVEMENTS.find(x => x.id === id);
-  if (a) showToast(a);
+  if (a) {
+    const coins = coinsForAchievement(id);
+    if (coins > 0) {
+      addCoins(coins);
+      a._lastCoinReward = coins;
+    }
+    showToast(a);
+  }
   return true;
+}
+
+// ---------- WRONG-ANSWER TEACHING MODAL (pause + show right answer + def) ----------
+let wrongModalResume = null;
+let wrongModalOpen = false;
+function showWrongModal(opts) {
+  wrongModalResume = opts.onClose || null;
+  wrongModalOpen = true;
+  const m = $('wrongModal'); if (!m) { if (wrongModalResume) wrongModalResume(); return; }
+  $('wmTerm').textContent = opts.term || '—';
+  $('wmDef').textContent  = opts.def  || '—';
+  $('wmLabel').textContent = opts.label || 'The correct answer was';
+  const stamp = $('wmStamp');
+  stamp.textContent = opts.stampText || 'WRONG';
+  stamp.className = 'wm-stamp' + (opts.stampClass ? ' ' + opts.stampClass : '');
+  m.classList.add('active');
+  m.setAttribute('aria-hidden', 'false');
+  setTimeout(() => { const c = $('wmClose'); if (c) c.focus(); }, 60);
+}
+function closeWrongModal() {
+  const m = $('wrongModal'); if (m) { m.classList.remove('active'); m.setAttribute('aria-hidden', 'true'); }
+  wrongModalOpen = false;
+  Sound.click();
+  const fn = wrongModalResume;
+  wrongModalResume = null;
+  if (fn) fn();
+}
+document.addEventListener('keydown', e => {
+  if (wrongModalOpen && (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape')) {
+    e.preventDefault();
+    closeWrongModal();
+  }
+});
+
+// Strip Type-It-style number prefix so kids type "Progressive Movement" not "1. Progressive Movement"
+function stripTermPrefix(s) {
+  return (s || '').replace(/^\d+[a-z]?\.\s*/i, '');
 }
 // All 9 game modes count toward 'all_modes'. 'all_games' (Arcade Champ) is the older 5-mode milestone.
 const ALL_MODE_IDS = ['flash','quiz','match','type','surv','range','blitz','memory','boss'];
@@ -3828,7 +3994,10 @@ function drainToastQueue() {
   Sound.achievement();
   const toast = $('toast');
   $('toastIcon').textContent = achievement.icon;
-  $('toastName').textContent = achievement.name;
+  const coinReward = achievement._lastCoinReward || 0;
+  $('toastName').textContent = coinReward
+    ? `${achievement.name}  ·  +${coinReward}💰`
+    : achievement.name;
   toast.classList.add('show');
   setTimeout(() => {
     toast.classList.remove('show');
@@ -4872,6 +5041,7 @@ function answer(correct, btn, ev) {
   clearInterval(qTimer);
   document.querySelectorAll('#qOptions .quiz-option').forEach(b => b.disabled = true);
   const currentTerm = qTerms[qOrder[qIdx]].term;
+  const currentDef  = qTerms[qOrder[qIdx]].def;
   recordTermResult(currentTerm, correct);
   if (correct) {
     btn.classList.add('correct');
@@ -4895,51 +5065,74 @@ function answer(correct, btn, ev) {
   }
   $('qScore').textContent = qScore;
   if (correct) bumpScoreEl($('qScore'));
-  // Boss mode: damage on correct, lose a life on wrong; end conditions checked
-  if (bossMode && bossActive) {
-    if (correct) {
-      // Crit detection: answer faster than CRIT_FAST_MS, OR focus meter is fully charged
-      const elapsed = bossQuestionStartedAt
-        ? ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - bossQuestionStartedAt
-        : 9999;
-      const fastCrit = elapsed < CRIT_FAST_MS;
-      const focusCrit = bossFocus >= FOCUS_MAX;
-      const isCrit = fastCrit || focusCrit;
-      bossDamage(qStreak, { isCritical: isCrit });
-      // Focus charging: spend it on crit, otherwise +1 (cap at FOCUS_MAX)
-      if (focusCrit) bossFocus = 0;
-      else bossFocus = Math.min(FOCUS_MAX, bossFocus + 1);
-      renderBossFocus();
-      if (bossHP <= 0) {
-        bossTriggerDefeat();
-        // Hold the defeat anim for ~1.6s before showing the result screen
-        setTimeout(endQuiz, 1700);
-        return;
-      }
-    } else {
+  // On WRONG: pause and show the teaching modal so Corbin actually learns
+  if (!correct) {
+    let earlyEnd = false;
+    if (bossMode && bossActive) {
       bossAttack();
-      // Wrong answer drains focus
       bossFocus = Math.max(0, bossFocus - 2);
       renderBossFocus();
-      if (bossLives <= 0) { setTimeout(endQuiz, 1000); return; }
+      if (bossLives <= 0) earlyEnd = true;
+    }
+    // In Quote Hunt, the "correct" label should call out the speaker, not the term
+    const correctLabel = quoteHuntMode
+      ? `The speaker was ${extractSpeaker(currentTerm)}`
+      : 'The correct answer was';
+    showWrongModal({
+      term: quoteHuntMode ? extractSpeaker(currentTerm) : currentTerm,
+      def: currentDef,
+      label: correctLabel,
+      onClose: () => {
+        if (earlyEnd) { setTimeout(endQuiz, 100); return; }
+        qIdx++; nextQuestion();
+      }
+    });
+    return;
+  }
+  // Correct path: boss damage, crits, focus, defeat
+  if (bossMode && bossActive) {
+    const elapsed = bossQuestionStartedAt
+      ? ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - bossQuestionStartedAt
+      : 9999;
+    const fastCrit = elapsed < CRIT_FAST_MS;
+    const focusCrit = bossFocus >= FOCUS_MAX;
+    const isCrit = fastCrit || focusCrit;
+    bossDamage(qStreak, { isCritical: isCrit });
+    if (focusCrit) bossFocus = 0;
+    else bossFocus = Math.min(FOCUS_MAX, bossFocus + 1);
+    renderBossFocus();
+    if (bossHP <= 0) {
+      bossTriggerDefeat();
+      setTimeout(endQuiz, 1700);
+      return;
     }
   }
   setTimeout(() => { qIdx++; nextQuestion(); }, 1000);
 }
 function qTimeOut() {
   const currentTerm = qTerms[qOrder[qIdx]].term;
+  const currentDef  = qTerms[qOrder[qIdx]].def;
   recordTermResult(currentTerm, false);
-  document.querySelectorAll('#qOptions .quiz-option').forEach(b => {
-    b.disabled = true;
-    if (b.textContent === currentTerm) b.classList.add('correct');
-  });
+  document.querySelectorAll('#qOptions .quiz-option').forEach(b => { b.disabled = true; });
   qStreak = 0; Sound.wrong();
-  // Boss: timeout = boss attacks
+  let earlyEnd = false;
   if (bossMode && bossActive) {
     bossAttack();
-    if (bossLives <= 0) { setTimeout(endQuiz, 1100); return; }
+    bossFocus = Math.max(0, bossFocus - 2);
+    renderBossFocus();
+    if (bossLives <= 0) earlyEnd = true;
   }
-  setTimeout(() => { qIdx++; nextQuestion(); }, 1200);
+  showWrongModal({
+    term: quoteHuntMode ? extractSpeaker(currentTerm) : currentTerm,
+    def: currentDef,
+    label: quoteHuntMode ? 'Time ran out. The speaker was' : 'Time ran out. The answer was',
+    stampText: "TIME'S UP",
+    stampClass: 'timeout-stamp',
+    onClose: () => {
+      if (earlyEnd) { setTimeout(endQuiz, 100); return; }
+      qIdx++; nextQuestion();
+    }
+  });
 }
 function endQuiz() {
   // FINAL SIMULATION + QUOTE HUNT have their own result flows
@@ -5108,13 +5301,15 @@ function nextType() {
   if (typeIdx >= typeOrder.length) return endType();
   const t = typeTerms[typeOrder[typeIdx]];
   typeHintUsed = false;
+  typeAnswered = false; // re-entry guard for double-fires
   $('tNum').textContent = typeIdx + 1;
   $('tScore').textContent = typeScore;
   $('tStreak').innerHTML = typeStreak + '🔥';
   $('tStreak').className = 'streak' + (typeStreak >= 3 ? ' hot' : '');
   $('tPrompt').textContent = t.def;
   $('tProgress').style.width = ((typeIdx) / typeOrder.length * 100) + '%';
-  renderTypeTarget(t.term, '');
+  // Strip "N. " prefixes so kids only type the actual words ("Progressive Movement" not "1. Progressive Movement")
+  renderTypeTarget(stripTermPrefix(t.term), '');
   const input = $('tInput');
   input.value = '';
   input.classList.remove('wrong', 'correct');
@@ -5145,24 +5340,31 @@ function renderTypeTarget(term, userInput) {
     wrap.appendChild(box);
   }
 }
+let typeAnswered = false;
 $('tInput').addEventListener('input', e => {
+  if (typeAnswered) return;
   const t = typeTerms[typeOrder[typeIdx]];
+  const target = stripTermPrefix(t.term);
   const val = e.target.value;
-  renderTypeTarget(t.term, val);
+  renderTypeTarget(target, val);
   Sound.type();
-  if (normalize(val) === normalize(t.term)) {
+  if (normalize(val) === normalize(target)) {
     typeCorrectAnswer();
   }
 });
 $('tInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     e.preventDefault();
+    if (typeAnswered) return;
     const t = typeTerms[typeOrder[typeIdx]];
-    if (normalize(e.target.value) === normalize(t.term)) typeCorrectAnswer();
+    const target = stripTermPrefix(t.term);
+    if (normalize(e.target.value) === normalize(target)) typeCorrectAnswer();
     else typeWrong();
   }
 });
 function typeCorrectAnswer() {
+  if (typeAnswered) return;
+  typeAnswered = true;
   const input = $('tInput');
   input.disabled = true;
   input.classList.add('correct');
@@ -5171,6 +5373,10 @@ function typeCorrectAnswer() {
   typeBest = Math.max(typeBest, typeStreak);
   Sound.correct();
   recordTermResult(typeTerms[typeOrder[typeIdx]].term, true);
+  // Make sure the full word stays visible in the letter boxes (HIT REGISTERED)
+  const t = typeTerms[typeOrder[typeIdx]];
+  const target = stripTermPrefix(t.term);
+  renderTypeTarget(target, target);
   const rect = input.getBoundingClientRect();
   burst(rect.left + rect.width / 2, rect.top + rect.height / 2, '#00ff88');
   if (typeStreak >= 5) unlock('typist');
@@ -5181,13 +5387,26 @@ function typeCorrectAnswer() {
   triggerCombo(typeStreak);
   $('tScore').textContent = typeScore;
   bumpScoreEl($('tScore'));
-  setTimeout(() => { typeIdx++; nextType(); }, 900);
+  setTimeout(() => { typeIdx++; nextType(); }, 1100);
 }
 function typeWrong() {
+  if (typeAnswered) return;
+  typeAnswered = true;
   const input = $('tInput');
   input.classList.add('wrong');
+  input.disabled = true;
   Sound.wrong();
-  setTimeout(() => input.classList.remove('wrong'), 400);
+  typeStreak = 0;
+  const t = typeTerms[typeOrder[typeIdx]];
+  recordTermResult(t.term, false);
+  const target = stripTermPrefix(t.term);
+  renderTypeTarget(target, target);
+  showWrongModal({
+    term: target,
+    def: t.def,
+    label: 'The correct word was',
+    onClose: () => { typeIdx++; nextType(); }
+  });
 }
 function typeHint() {
   // v9: free hint if user has hint inventory; otherwise normal hint (still cheap)
