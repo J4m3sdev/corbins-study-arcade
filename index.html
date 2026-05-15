@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Corbin's Study Arcade — Mission Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-0: #04060f;
+    --bg-1: #0a0f24;
+    --bg-2: #131a3a;
+    --ink: #f1f5ff;
+    --ink-dim: #8a93b5;
+    --neon-cyan: #00e5ff;
+    --neon-magenta: #ff2dbb;
+    --neon-violet: #8a4fff;
+    --neon-lime: #c9ff3a;
+    --neon-amber: #ffb547;
+    --glass: rgba(255,255,255,0.05);
+    --glass-strong: rgba(255,255,255,0.09);
+    --border: rgba(255,255,255,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow-x: hidden; }
+  body {
+    font-family: 'Space Grotesk', 'Outfit', system-ui, sans-serif;
+    background: var(--bg-0);
+    color: var(--ink);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* ===== Animated gradient mesh background ===== */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(60vmax 40vmax at 15% 12%, rgba(0,229,255,0.22), transparent 60%),
+      radial-gradient(50vmax 50vmax at 85% 20%, rgba(255,45,187,0.18), transparent 65%),
+      radial-gradient(70vmax 50vmax at 50% 100%, rgba(138,79,255,0.22), transparent 60%),
+      radial-gradient(40vmax 30vmax at 95% 90%, rgba(201,255,58,0.14), transparent 70%);
+    animation: drift 24s ease-in-out infinite alternate;
+    z-index: -2;
+  }
+  @keyframes drift {
+    0%   { transform: translate(0,0) scale(1); }
+    50%  { transform: translate(-2%, 1%) scale(1.05); }
+    100% { transform: translate(2%, -1%) scale(0.98); }
+  }
+  /* Grid overlay */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(circle at 50% 40%, #000 0%, transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* ===== Top bar ===== */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px clamp(20px, 5vw, 64px);
+    gap: 16px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 14px;
+  }
+  .brand-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--neon-cyan);
+    box-shadow: 0 0 18px var(--neon-cyan), 0 0 32px rgba(0,229,255,0.4);
+    animation: pulseDot 1.6s ease-in-out infinite;
+  }
+  @keyframes pulseDot {
+    0%,100% { transform: scale(1); opacity: 1; }
+    50%     { transform: scale(1.25); opacity: 0.75; }
+  }
+  .brand-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .brand-name b { color: var(--ink); }
+
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .status-pill .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--neon-lime);
+    box-shadow: 0 0 10px var(--neon-lime);
+  }
+
+  /* ===== Hero ===== */
+  .hero {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: clamp(20px, 6vh, 64px) clamp(20px, 5vw, 64px) 24px;
+    text-align: center;
+  }
+  .eyebrow {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--neon-cyan);
+    padding: 8px 16px;
+    border: 1px solid rgba(0,229,255,0.35);
+    border-radius: 999px;
+    background: rgba(0,229,255,0.06);
+    margin-bottom: 28px;
+  }
+  .hero h1 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 900;
+    font-size: clamp(40px, 8vw, 88px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 20px;
+    background: linear-gradient(120deg, #fff 0%, var(--neon-cyan) 35%, var(--neon-magenta) 65%, var(--neon-lime) 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shiftGradient 8s ease-in-out infinite;
+  }
+  @keyframes shiftGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
+  }
+  .hero h1 .small {
+    display: block;
+    font-size: 0.42em;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--ink-dim);
+    -webkit-text-fill-color: var(--ink-dim);
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+  }
+  .hero p.tagline {
+    font-size: clamp(15px, 1.6vw, 19px);
+    color: var(--ink-dim);
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  /* ===== Mission card ===== */
+  .mission {
+    max-width: 720px;
+    margin: 32px auto 0;
+    padding: 20px 24px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    display: flex; align-items: center; gap: 18px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .mission-icon {
+    flex: 0 0 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-violet));
+    display: grid; place-items: center;
+    font-size: 26px;
+  }
+  .mission-text { flex: 1; text-align: left; }
+  .mission-text .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 4px;
+  }
+  .mission-text .body {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--ink);
+  }
+  .mission-text .body b {
+    color: var(--neon-cyan);
+  }
+
+  /* ===== Subject grid ===== */
+  .subjects {
+    max-width: 1200px;
+    margin: 48px auto 0;
+    padding: 0 clamp(20px, 5vw, 64px);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 22px;
+  }
+  .subject {
+    position: relative;
+    display: block;
+    padding: 28px;
+    border-radius: 22px;
+    background: var(--glass-strong);
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    isolation: isolate;
+    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4), border-color 0.35s;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    min-height: 280px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .subject:hover { transform: translateY(-6px) scale(1.01); border-color: rgba(255,255,255,0.28); }
+  .subject:active { transform: translateY(-2px) scale(0.99); }
+
+  .subject::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--accent-grad);
+    opacity: 0.18;
+    z-index: -1;
+    transition: opacity 0.35s;
+  }
+  .subject:hover::before { opacity: 0.32; }
+
+  .subject::after {
+    content: '';
+    position: absolute;
+    width: 220px; height: 220px;
+    top: -80px; right: -80px;
+    border-radius: 50%;
+    background: var(--accent-glow);
+    filter: blur(48px);
+    opacity: 0.6;
+    z-index: -1;
+    transition: transform 0.5s ease;
+  }
+  .subject:hover::after { transform: translate(-12px, 12px) scale(1.1); }
+
+  .subject[data-subject="history"] {
+    --accent: #ffb547;
+    --accent-grad: linear-gradient(135deg, rgba(255,181,71,0.4), rgba(255,80,40,0.4));
+    --accent-glow: radial-gradient(circle, rgba(255,181,71,0.55), transparent 60%);
+  }
+  .subject[data-subject="ela"] {
+    --accent: #c084ff;
+    --accent-grad: linear-gradient(135deg, rgba(192,132,255,0.4), rgba(255,80,160,0.4));
+    --accent-glow: radial-gradient(circle, rgba(192,132,255,0.55), transparent 60%);
+  }
+  .subject[data-subject="science"] {
+    --accent: #00e5ff;
+    --accent-grad: linear-gradient(135deg, rgba(0,229,255,0.3), rgba(60,140,255,0.3));
+    --accent-glow: radial-gradient(circle, rgba(0,229,255,0.4), transparent 60%);
+  }
+  .subject[data-subject="latin"] {
+    --accent: #c9ff3a;
+    --accent-grad: linear-gradient(135deg, rgba(201,255,58,0.3), rgba(80,255,180,0.3));
+    --accent-glow: radial-gradient(circle, rgba(201,255,58,0.4), transparent 60%);
+  }
+  .subject[data-subject="algebra"] {
+    --accent: #ff2dbb;
+    --accent-grad: linear-gradient(135deg, rgba(255,45,187,0.3), rgba(255,80,80,0.3));
+    --accent-glow: radial-gradient(circle, rgba(255,45,187,0.4), transparent 60%);
+  }
+
+  .subject .badge-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .subject .badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 6px 12px;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ink);
+    text-transform: uppercase;
+  }
+  .subject .badge.dot::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .subject .badge.locked {
+    color: var(--ink-dim);
+  }
+  .subject .glyph {
+    font-size: 44px;
+    line-height: 1;
+    filter: drop-shadow(0 4px 18px rgba(0,0,0,0.5));
+  }
+  .subject h2 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 900;
+    font-size: 30px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .subject .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 18px;
+  }
+  .subject .blurb {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+    margin-bottom: 22px;
+  }
+  .subject .stats {
+    display: flex; gap: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+  }
+  .subject .stats b {
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .subject .arrow {
+    position: absolute;
+    bottom: 24px; right: 24px;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--bg-0);
+    display: grid; place-items: center;
+    font-weight: 900;
+    font-size: 18px;
+    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+  }
+  .subject:hover .arrow { transform: rotate(-45deg) translateX(4px); }
+
+  .subject.locked {
+    pointer-events: none;
+    opacity: 0.55;
+  }
+  .subject.locked .arrow { background: rgba(255,255,255,0.18); color: var(--ink-dim); }
+
+  /* ===== Bottom panels ===== */
+  .panels {
+    max-width: 1200px;
+    margin: 56px auto 0;
+    padding: 0 clamp(20px, 5vw, 64px);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+  }
+  @media (max-width: 760px) {
+    .panels { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 26px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .panel h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 14px;
+  }
+  .panel .big {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 900;
+    font-size: 34px;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .panel .desc {
+    font-size: 14px;
+    color: var(--ink-dim);
+    line-height: 1.5;
+  }
+  .panel .tips {
+    display: grid; gap: 10px;
+    margin-top: 14px;
+  }
+  .panel .tips li {
+    list-style: none;
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13.5px;
+    color: var(--ink);
+    line-height: 1.45;
+  }
+  .panel .tips li::before {
+    content: '◆';
+    color: var(--neon-cyan);
+    margin-top: 2px;
+    flex: 0 0 auto;
+  }
+
+  /* ===== Footer ===== */
+  footer {
+    max-width: 1200px;
+    margin: 56px auto 0;
+    padding: 32px clamp(20px, 5vw, 64px);
+    text-align: center;
+    color: var(--ink-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  footer a { color: var(--neon-cyan); text-decoration: none; }
+  footer .countdown b { color: var(--neon-amber); }
+
+  /* ===== Reveal animation ===== */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: revealIn 0.7s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  }
+  .reveal-1 { animation-delay: 0.05s; }
+  .reveal-2 { animation-delay: 0.15s; }
+  .reveal-3 { animation-delay: 0.25s; }
+  .reveal-4 { animation-delay: 0.35s; }
+  .reveal-5 { animation-delay: 0.45s; }
+  .reveal-6 { animation-delay: 0.55s; }
+  .reveal-7 { animation-delay: 0.65s; }
+  @keyframes revealIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar reveal reveal-1">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    <div class="brand-name">CORBIN'S <b>STUDY ARCADE</b> // v1.0</div>
+  </div>
+  <div class="status-pill"><span class="dot"></span> <span id="onlineLabel">SYSTEM ONLINE</span></div>
+</header>
+
+<section class="hero">
+  <div class="eyebrow reveal reveal-2">// MISSION CONTROL</div>
+  <h1 class="reveal reveal-3">
+    Pick your subject.<br>Wreck the finals.
+    <span class="small">Built for Corbin · 8th grade · Finals start May 20</span>
+  </h1>
+  <p class="tagline reveal reveal-4">Every site below uses research-backed memory science — active recall, spaced repetition, retrieval practice — wrapped in arcade games your brain won't want to put down.</p>
+
+  <div class="mission reveal reveal-5">
+    <div class="mission-icon">🎯</div>
+    <div class="mission-text">
+      <div class="label">Today's mission</div>
+      <div class="body" id="missionText">Pick a subject and clock <b>20 questions</b>. Streak grows. Brain wins.</div>
+    </div>
+  </div>
+</section>
+
+<section class="subjects">
+  <a class="subject reveal reveal-5" data-subject="history" href="./history/">
+    <div class="badge-row">
+      <span class="badge dot">LIVE</span>
+      <span class="glyph">🏛️</span>
+    </div>
+    <div>
+      <h2>History</h2>
+      <div class="subtitle">// US Finals — Progressive Era → WWII</div>
+      <p class="blurb">102 terms across 8 topics. Sepia-stained CRT vibes. New game mode: Timeline — drag events into chronological order.</p>
+    </div>
+    <div class="stats">
+      <span><b>102</b> terms</span>
+      <span><b>8</b> topics</span>
+      <span><b>10+</b> game modes</span>
+    </div>
+    <div class="arrow">→</div>
+  </a>
+
+  <a class="subject reveal reveal-6" data-subject="ela" href="./ela/">
+    <div class="badge-row">
+      <span class="badge dot">LIVE</span>
+      <span class="glyph">📖</span>
+    </div>
+    <div>
+      <h2>English / ELA</h2>
+      <div class="subtitle">// Lit Terms · Much Ado · Crusoe · Themes</div>
+      <p class="blurb">76 terms across 6 topics. Theatre marquee + library-at-night design. New game mode: Quote Hunt — who said it?</p>
+    </div>
+    <div class="stats">
+      <span><b>76</b> terms</span>
+      <span><b>6</b> topics</span>
+      <span><b>10+</b> game modes</span>
+    </div>
+    <div class="arrow">→</div>
+  </a>
+
+  <div class="subject locked reveal reveal-6" data-subject="science">
+    <div class="badge-row">
+      <span class="badge locked">SOON</span>
+      <span class="glyph">⚛️</span>
+    </div>
+    <div>
+      <h2>Science</h2>
+      <div class="subtitle">// Waves · Reflection · Refraction</div>
+      <p class="blurb">Transverse vs longitudinal, refraction, reflection — drop the study guide and we'll wire it in.</p>
+    </div>
+    <div class="stats">
+      <span><b>—</b> terms</span>
+      <span>queued</span>
+    </div>
+    <div class="arrow">→</div>
+  </div>
+
+  <div class="subject locked reveal reveal-7" data-subject="latin">
+    <div class="badge-row">
+      <span class="badge locked">SOON</span>
+      <span class="glyph">🏺</span>
+    </div>
+    <div>
+      <h2>Latin</h2>
+      <div class="subtitle">// 16 chapters of grammar</div>
+      <p class="blurb">Declensions, conjugations, vocab. Drop the chapter list and a Latin-specific game mode will land here.</p>
+    </div>
+    <div class="stats">
+      <span><b>—</b> terms</span>
+      <span>queued</span>
+    </div>
+    <div class="arrow">→</div>
+  </div>
+
+  <div class="subject locked reveal reveal-7" data-subject="algebra">
+    <div class="badge-row">
+      <span class="badge locked">SOON</span>
+      <span class="glyph">🧮</span>
+    </div>
+    <div>
+      <h2>Algebra</h2>
+      <div class="subtitle">// Study guide pending</div>
+      <p class="blurb">Drop the algebra study guide and Equation Sniper / Slope Surfer modes will get built.</p>
+    </div>
+    <div class="stats">
+      <span><b>—</b> terms</span>
+      <span>queued</span>
+    </div>
+    <div class="arrow">→</div>
+  </div>
+</section>
+
+<section class="panels">
+  <div class="panel reveal reveal-7">
+    <h3>// Study science under the hood</h3>
+    <div class="big">Built on what actually works.</div>
+    <p class="desc">Every game in here maps to a peer-reviewed memory technique. No filler.</p>
+    <ul class="tips">
+      <li><b>Active recall</b> — testing > re-reading (Roediger &amp; Karpicke)</li>
+      <li><b>Spaced repetition</b> — SM-2 forgetting-curve drill on missed terms</li>
+      <li><b>Interleaving</b> — mix topics, beat blocked practice</li>
+      <li><b>Generation effect</b> — produce the answer, don't just recognize</li>
+      <li><b>Method of loci</b> — coming: Memory Palace mode</li>
+    </ul>
+  </div>
+  <div class="panel reveal reveal-7">
+    <h3>// How to use this</h3>
+    <div class="big">Daily routine.</div>
+    <p class="desc">10 minutes per subject per day beats 90 minutes the night before. Promise.</p>
+    <ul class="tips">
+      <li>Open a subject → hit <b>Quick Play</b> first</li>
+      <li>Drill the <b>Missed Terms</b> pill when it lights up</li>
+      <li>Finish with one round of <b>Final Boss</b> if you cleared 25+ terms</li>
+      <li>Streak grows daily. Don't skip days — that's the whole game</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="countdown" id="countdown">Loading countdown…</div>
+  <div style="margin-top: 10px;">
+    Built with neon, caffeine, and memory science. <a href="https://github.com/J4m3sdev/corbins-study-arcade" target="_blank" rel="noopener">View source</a>.
+  </div>
+</footer>
+
+<script>
+  // Countdown to finals (start date 2026-05-20)
+  (function () {
+    const FINALS = new Date('2026-05-20T08:00:00');
+    const el = document.getElementById('countdown');
+    function tick() {
+      const now = new Date();
+      const ms = FINALS - now;
+      if (ms <= 0) {
+        el.innerHTML = '// FINALS WEEK IN PROGRESS — <b>YOU GOT THIS</b>';
+        return;
+      }
+      const days = Math.floor(ms / 86400000);
+      const hours = Math.floor((ms % 86400000) / 3600000);
+      const mins = Math.floor((ms % 3600000) / 60000);
+      el.innerHTML = `// FINALS IN <b>${days}d ${hours}h ${mins}m</b> — DON'T BLINK`;
+    }
+    tick();
+    setInterval(tick, 30000);
+  })();
+
+  // Tap subject = nice click sound (Web Audio, no asset)
+  let ac;
+  function chirp(freq) {
+    if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; } }
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = 'square';
+    o.frequency.setValueAtTime(freq, ac.currentTime);
+    o.frequency.exponentialRampToValueAtTime(freq * 1.6, ac.currentTime + 0.08);
+    g.gain.setValueAtTime(0.06, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.18);
+    o.connect(g); g.connect(ac.destination);
+    o.start(); o.stop(ac.currentTime + 0.2);
+  }
+  document.querySelectorAll('.subject:not(.locked)').forEach(el => {
+    el.addEventListener('click', () => chirp(660));
+    el.addEventListener('mouseenter', () => chirp(440));
+  });
+</script>
+</body>
+</html>
