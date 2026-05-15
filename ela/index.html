@@ -6,7 +6,7 @@
 <title>Corbin's Study Arcade — ELA 📖</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;800;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=EB+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
 <style>
   /* =========================================================
      CORBIN'S CRAM ARCADE — v6
@@ -338,6 +338,276 @@
   .boss-hud.boss-hit { animation: boss-hit 0.5s ease; }
   body.boss-mode .quiz-prompt { border-left-color: var(--pink); }
   body.boss-mode .quiz-prompt .label { color: var(--pink); }
+
+  /* ---------- FINAL SIMULATION CTA (bottom-of-home, ELA-flavored) ---------- */
+  .final-sim-cta {
+    margin-top: 28px;
+    padding: 28px clamp(20px, 4vw, 36px);
+    background: linear-gradient(135deg, rgba(215,123,255,0.16), rgba(244,201,93,0.10));
+    border: 2px solid var(--pink);
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.4), box-shadow 0.25s;
+    box-shadow: 0 12px 36px rgba(215,123,255,0.18);
+  }
+  .final-sim-cta:hover {
+    transform: translateY(-4px) scale(1.005);
+    box-shadow: 0 22px 60px rgba(215,123,255,0.32);
+  }
+  .final-sim-cta::before {
+    content: '';
+    position: absolute;
+    width: 280px; height: 280px;
+    top: -120px; right: -90px;
+    background: radial-gradient(circle, rgba(244,201,93,0.45), transparent 65%);
+    filter: blur(40px);
+    pointer-events: none;
+  }
+  .final-sim-cta::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(
+      45deg, transparent 0 22px, rgba(255,255,255,0.04) 22px 23px
+    );
+    pointer-events: none;
+  }
+  .final-sim-cta .fs-tag {
+    display: inline-block;
+    padding: 6px 14px;
+    background: var(--pink);
+    color: var(--bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 14px rgba(215,123,255,0.4);
+  }
+  .final-sim-cta .fs-headline {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(18px, 3vw, 28px);
+    line-height: 1.1;
+    color: var(--ink);
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+  .final-sim-cta .fs-headline em {
+    font-style: normal;
+    color: var(--cyan);
+    text-shadow: 0 0 12px rgba(244,201,93,0.55);
+  }
+  .final-sim-cta .fs-blurb {
+    font-size: 14px;
+    color: var(--ink-dim);
+    line-height: 1.55;
+    max-width: 600px;
+    margin-bottom: 16px;
+  }
+  .final-sim-cta .fs-meta {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+    margin-bottom: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.06em;
+  }
+  .final-sim-cta .fs-meta b { color: var(--ink); font-size: 14px; font-weight: 700; }
+  .final-sim-cta .fs-meta .dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--ink-dim);
+  }
+  .final-sim-cta .fs-btn {
+    display: inline-block;
+    padding: 14px 26px;
+    background: var(--pink);
+    color: var(--bg);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(215,123,255,0.36);
+    transition: transform 0.2s;
+  }
+  .final-sim-cta:hover .fs-btn { transform: translateX(4px); }
+
+  /* Grade letter on result screen */
+  .grade-letter {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 80px;
+    line-height: 1;
+    margin: 24px 0 16px;
+    color: var(--lime);
+    text-shadow: 0 0 22px var(--lime), 0 0 50px rgba(244,201,93,0.4), 4px 4px 0 var(--bg);
+    display: inline-block;
+    padding: 14px 28px;
+    border: 4px solid currentColor;
+    background: var(--bg);
+  }
+  .grade-letter.grade-A { color: #c084ff; }
+  .grade-letter.grade-B { color: var(--lime); }
+  .grade-letter.grade-C { color: var(--orange); }
+  .grade-letter.grade-D { color: #ff8a3a; }
+  .grade-letter.grade-F { color: var(--red); }
+
+  /* ===========================================================
+     ELA HOME-SCREEN AESTHETIC: vintage theatre playbill overlay
+     Targets only the HOME screen, leaving game screens as v10 arcade
+     =========================================================== */
+  body { font-family: 'Outfit', 'EB Garamond', serif; }
+  #home {
+    background:
+      radial-gradient(circle at 20% 10%, rgba(244,201,93,0.10), transparent 60%),
+      radial-gradient(circle at 80% 90%, rgba(215,123,255,0.10), transparent 60%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    padding-bottom: 24px;
+  }
+  #home::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: repeating-linear-gradient(
+      90deg, transparent 0 2px, rgba(244,201,93,0.025) 2px 3px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+  #home .hero h1 {
+    font-family: 'Playfair Display', 'EB Garamond', Georgia, serif !important;
+    font-style: italic !important;
+    font-weight: 900 !important;
+    text-transform: none !important;
+    letter-spacing: -0.01em !important;
+  }
+  #home .hero h1 .accent {
+    color: var(--cyan) !important;
+    text-shadow: 0 0 18px rgba(244,201,93,0.5) !important;
+  }
+  #home .hero h1 .pink {
+    color: var(--pink) !important;
+    text-shadow: 0 0 18px rgba(215,123,255,0.5) !important;
+  }
+  #home .hero p {
+    font-family: 'EB Garamond', Georgia, serif !important;
+    font-style: italic !important;
+    color: var(--ink-dim) !important;
+  }
+  /* Playbill divider above topic pills */
+  #home .topic-pills {
+    position: relative;
+    padding-top: 18px;
+  }
+  #home .topic-pills::before {
+    content: 'ACT I — TOPICS';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    color: var(--cyan);
+    text-shadow: 0 0 8px rgba(244,201,93,0.4);
+  }
+  /* Stylize topic pills as ticket-style elements */
+  #home .topic-pill {
+    border-radius: 4px !important;
+    border: 1px solid rgba(244,201,93,0.32) !important;
+    background: rgba(255,255,255,0.02) !important;
+    font-family: 'EB Garamond', Georgia, serif !important;
+    font-style: italic !important;
+  }
+  #home .topic-pill.active {
+    border-color: var(--cyan) !important;
+    background: rgba(244,201,93,0.10) !important;
+  }
+  /* Game cards become playbills */
+  #home .games-group-label {
+    font-family: 'Playfair Display', 'EB Garamond', Georgia, serif !important;
+    font-style: italic;
+    font-weight: 700;
+    color: var(--cyan) !important;
+    letter-spacing: 0.08em;
+    font-size: 13px;
+    text-transform: uppercase;
+  }
+  #home .games-group-label::before { content: '— '; opacity: 0.6; }
+  #home .games-group-label::after  { content: ' —'; opacity: 0.6; }
+  #home .game-card {
+    border-radius: 6px !important;
+    border: 2px solid rgba(244,201,93,0.28) !important;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%),
+      var(--bg-2) !important;
+    box-shadow:
+      0 0 0 1px rgba(244,201,93,0.18) inset,
+      6px 6px 0 rgba(244,201,93,0.10),
+      0 12px 28px rgba(0,0,0,0.4) !important;
+    position: relative !important;
+  }
+  #home .game-card::after {
+    content: '';
+    position: absolute;
+    top: 8px; left: 8px; right: 8px; bottom: 8px;
+    border: 1px solid rgba(244,201,93,0.18);
+    pointer-events: none;
+    border-radius: 3px;
+  }
+  #home .game-card .num {
+    font-family: 'JetBrains Mono', monospace !important;
+    color: var(--cyan) !important;
+    letter-spacing: 0.16em !important;
+  }
+  #home .game-card h3 {
+    font-family: 'Playfair Display', 'EB Garamond', Georgia, serif !important;
+    font-style: italic !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  #home .game-card p {
+    font-family: 'EB Garamond', Georgia, serif !important;
+    font-style: italic;
+    font-size: 14.5px !important;
+    line-height: 1.5 !important;
+  }
+  #home .game-card .hi {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 10.5px !important;
+    letter-spacing: 0.12em !important;
+  }
+  #home .game-card:not(.locked):hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow:
+      0 0 0 1px rgba(244,201,93,0.35) inset,
+      8px 8px 0 rgba(244,201,93,0.18),
+      0 18px 40px rgba(0,0,0,0.55) !important;
+  }
+  /* Playbill stamps over groups */
+  #home .games-group {
+    position: relative;
+    padding-top: 22px;
+  }
+  #home .games-group.warmup     .games-group-label::before { content: 'PROLOGUE — '; opacity: 0.8; }
+  #home .games-group.testself   .games-group-label::before { content: 'ACT II — '; opacity: 0.8; }
+  #home .games-group.challenge  .games-group-label::before { content: 'ACT III — '; opacity: 0.8; }
+  #home .games-group.boss       .games-group-label::before { content: 'ACT V — '; opacity: 0.8; }
+  #home .games-group .games-group-label::after { content: '' !important; }
+  /* Hero brand reinforcement */
+  #home .hero-greet {
+    background: rgba(244,201,93,0.08) !important;
+    border-color: rgba(244,201,93,0.3) !important;
+    font-family: 'EB Garamond', Georgia, serif !important;
+    font-style: italic;
+  }
+  /* Topbar logo gets a slight serif twist on ELA */
+  .logo {
+    font-family: 'Playfair Display', 'EB Garamond', Georgia, serif !important;
+    font-style: italic !important;
+    font-weight: 800 !important;
+    letter-spacing: 0 !important;
+  }
 
   /* ---------- BOSS UPGRADE v10: phases, intro, banner, crits, defeat ---------- */
   body.boss-enraged .boss-hud {
@@ -1816,12 +2086,17 @@
       </div>
     </div>
     <div class="games-group boss">
-      <div class="games-group-label">// BOSS</div>
+      <div class="games-group-label">// FINALE</div>
       <div class="games">
         <div class="game-card boss-card locked" id="bossCard" style="--accent: var(--pink);" onclick="startBoss()" role="button" tabindex="0" aria-label="Boss mode">
-          <div class="num">// MODE 09 · BOSS</div><h3 id="bossTitle">🔒 FINAL BOSS</h3>
+          <div class="num">// ACT V · BOSS</div><h3 id="bossTitle">🔒 FINAL BOSS</h3>
           <p id="bossDesc">Master 25 terms to unlock.</p>
           <div class="hi" id="hiBoss">HI-SCORE: 0</div>
+        </div>
+        <div class="game-card" id="quoteHuntCard" style="--accent: var(--cyan);" onclick="startQuoteHunt()" role="button" tabindex="0" aria-label="Quote Hunt mode">
+          <div class="num">// ACT VI · NEW</div><h3>🎭 QUOTE HUNT</h3>
+          <p>Read the line. Name the speaker. Tests character recognition through Much Ado quotes.</p>
+          <div class="hi" id="hiQuote">HI-SCORE: 0</div>
         </div>
       </div>
     </div>
@@ -1829,6 +2104,20 @@
       <button class="util-btn" onclick="openProfile()">👤 PROFILE</button>
       <button class="util-btn" onclick="openShop()">💰 SHOP</button>
       <button class="util-btn" onclick="openStats()">📊 STATS &amp; BADGES</button>
+    </div>
+
+    <!-- BOTTOM-OF-HOME: FINAL SIMULATION (ELA-only) -->
+    <div class="final-sim-cta" onclick="startFinalSim()" role="button" tabindex="0">
+      <div class="fs-tag">🎭 FINAL SIMULATION · ELA ONLY</div>
+      <div class="fs-headline">Take the <em>dress rehearsal</em>.</div>
+      <p class="fs-blurb">25 questions · 5 sec each · ALL 76 ELA terms shuffled · Literary Terms, Much Ado, Crusoe, Themes together. Get a grade letter at the end. This is how it'll feel tomorrow.</p>
+      <div class="fs-meta">
+        <span><b>25</b> Qs</span><span class="dot"></span>
+        <span><b>5s</b> per Q</span><span class="dot"></span>
+        <span>NO LIVES</span><span class="dot"></span>
+        <span>GRADE LETTER</span>
+      </div>
+      <span class="fs-btn">RAISE THE CURTAIN →</span>
     </div>
   </div>
 
@@ -2069,6 +2358,7 @@
   <div id="result" class="screen">
     <div class="result">
       <div class="result-title" id="resultTitle">NICE!</div>
+      <div id="gradeWrap" hidden style="text-align:center;"><span class="grade-letter" id="gradeLetter">A</span></div>
       <div class="result-score" id="resultScore">0</div>
       <div class="result-msg" id="resultMsg">—</div>
       <div class="next-up" id="nextUp" hidden>
@@ -4049,6 +4339,116 @@ function exitBossMode() {
   }
 }
 
+// ---------- FINAL SIMULATION (ELA dress rehearsal) ----------
+let finalSimMode = false;
+const FINAL_SIM_Q_COUNT = 25;
+const FINAL_SIM_Q_TIME = 5000;
+function startFinalSim() {
+  ensureAudio();
+  exitBossMode();
+  markGameTried('quiz');
+  qTerms = TERMS; // ALL ELA terms
+  if (qTerms.length < 4) { showSnack('Need at least 4 terms for the simulation'); return; }
+  const total = Math.min(FINAL_SIM_Q_COUNT, qTerms.length);
+  qOrder = shuffle([...Array(qTerms.length).keys()]).slice(0, total);
+  qIdx = 0; qScore = 0; qStreak = 0; qBestStreak = 0; qCorrect = 0; lastCorrectPos = -1;
+  finalSimMode = true;
+  $('qTotal').textContent = qOrder.length;
+  $('quiz').querySelector('.screen-title').textContent = '// 🎭 FINAL SIMULATION';
+  $('bossHud').hidden = true;
+  document.body.classList.add('finalsim-mode');
+  Sound.click(); showScreen('quiz'); nextQuestion();
+}
+function exitFinalSim() {
+  finalSimMode = false;
+  document.body.classList.remove('finalsim-mode');
+  $('quiz').querySelector('.screen-title').textContent = '// SPEED QUIZ';
+}
+function gradeFromPct(pct) {
+  if (pct >= 0.97) return { letter: 'A+', cls: 'grade-A', msg: 'Bravo. You\'re ready for the curtain.' };
+  if (pct >= 0.93) return { letter: 'A',  cls: 'grade-A', msg: 'Excellent. You know this material cold.' };
+  if (pct >= 0.90) return { letter: 'A-', cls: 'grade-A', msg: 'Strong A. One more pass and you\'re golden.' };
+  if (pct >= 0.87) return { letter: 'B+', cls: 'grade-B', msg: 'Solid. A bit more drilling and you\'re in A range.' };
+  if (pct >= 0.83) return { letter: 'B',  cls: 'grade-B', msg: 'Good. Hit the missed-terms drill before tomorrow.' };
+  if (pct >= 0.80) return { letter: 'B-', cls: 'grade-B', msg: 'Borderline B. Drill weak topics now.' };
+  if (pct >= 0.77) return { letter: 'C+', cls: 'grade-C', msg: 'Passing but shaky. Need another rehearsal.' };
+  if (pct >= 0.73) return { letter: 'C',  cls: 'grade-C', msg: 'Average. Don\'t take the real test yet.' };
+  if (pct >= 0.70) return { letter: 'C-', cls: 'grade-C', msg: 'Just barely. Hard study session before finals.' };
+  if (pct >= 0.60) return { letter: 'D',  cls: 'grade-D', msg: 'Not ready. Drill the missed terms hard.' };
+  return { letter: 'F', cls: 'grade-F', msg: 'Start over with Flash Cards, then return to me.' };
+}
+function endFinalSim() {
+  markCompleted('quiz');
+  const total = qOrder.length || 1;
+  const pct = qCorrect / total;
+  const grade = gradeFromPct(pct);
+  const cur = parseInt(localStorage.getItem('cram_finalsim_hi') || '0', 10);
+  const newHi = qCorrect > cur;
+  if (newHi) localStorage.setItem('cram_finalsim_hi', qCorrect);
+  Sound.victory();
+  bumpStat('games_played');
+  if (qCorrect === total) { unlock('boss_legend'); fireConfetti(180); }
+  else if (newHi) fireConfetti(80);
+  $('gradeWrap').hidden = false;
+  const gl = $('gradeLetter');
+  gl.textContent = grade.letter;
+  gl.className = 'grade-letter ' + grade.cls;
+  $('resultTitle').textContent = newHi ? '🎭 NEW SIM HI-SCORE!' : 'FINAL SIM COMPLETE';
+  $('resultScore').textContent = `${qCorrect} / ${total}`;
+  $('resultMsg').textContent = `${grade.msg} (${Math.round(pct*100)}% · best streak ${qBestStreak}🔥)`;
+  $('resultAgain').onclick = startFinalSim;
+  awardCoins({ newHi, perfect: qCorrect === total });
+  exitFinalSim();
+  showScreen('result');
+}
+
+// ---------- QUOTE HUNT (ELA-only new game: read the quote, pick the speaker) ----------
+let quoteHuntMode = false;
+function extractSpeaker(term) {
+  // ELA Much Ado Quotes terms look like "Leonato — 'merry war'" — speaker is before the em dash
+  const idx = term.indexOf('—');
+  return idx > 0 ? term.slice(0, idx).trim() : term;
+}
+function startQuoteHunt() {
+  ensureAudio();
+  exitBossMode();
+  markGameTried('quiz');
+  const quotes = TERMS.filter(t => t.topic === 'ELA: Much Ado Quotes');
+  if (quotes.length < 4) { showSnack('Not enough Much Ado quotes loaded'); return; }
+  qTerms = quotes;
+  qOrder = shuffle([...Array(quotes.length).keys()]).slice(0, Math.min(10, quotes.length));
+  qIdx = 0; qScore = 0; qStreak = 0; qBestStreak = 0; qCorrect = 0; lastCorrectPos = -1;
+  quoteHuntMode = true;
+  $('qTotal').textContent = qOrder.length;
+  $('quiz').querySelector('.screen-title').textContent = '// 🎭 QUOTE HUNT';
+  $('bossHud').hidden = true;
+  Sound.click(); showScreen('quiz'); nextQuestion();
+}
+function exitQuoteHunt() {
+  quoteHuntMode = false;
+  $('quiz').querySelector('.screen-title').textContent = '// SPEED QUIZ';
+}
+function endQuoteHunt() {
+  markCompleted('quiz');
+  const cur = parseInt(localStorage.getItem('cram_quote_hi') || '0', 10);
+  const newHi = qScore > cur;
+  if (newHi) localStorage.setItem('cram_quote_hi', qScore);
+  Sound.victory();
+  bumpStat('games_played');
+  const perfect = qCorrect === qOrder.length;
+  if (perfect) fireConfetti(120);
+  if (newHi) fireConfetti(60);
+  $('gradeWrap').hidden = true;
+  $('resultTitle').textContent = newHi ? '🎭 NEW HI-SCORE!' : perfect ? 'PERFECT RECOGNITION!' : qCorrect >= qOrder.length * 0.7 ? 'WELL ACTED' : 'BACK TO REHEARSAL';
+  $('resultScore').textContent = qScore;
+  $('resultMsg').textContent = `${qCorrect}/${qOrder.length} speakers identified · best streak ${qBestStreak}🔥`;
+  $('resultAgain').onclick = startQuoteHunt;
+  const hi = $('hiQuote'); if (hi) hi.textContent = `HI-SCORE: ${Math.max(qScore, cur)}`;
+  awardCoins({ newHi, perfect });
+  exitQuoteHunt();
+  showScreen('result');
+}
+
 // ---------- THEMES ----------
 const THEMES = [
   { id: 'default', name: 'DEFAULT', dots: ['#dfff00', '#ff2d95', '#00e5ff'] },
@@ -4437,15 +4837,22 @@ function nextQuestion() {
   options.forEach(opt => {
     const b = document.createElement('button');
     b.className = 'quiz-option';
-    b.textContent = opt.term;
+    // Quote Hunt: show ONLY the speaker name as the option, not the full "Speaker — quote" term
+    b.textContent = quoteHuntMode ? extractSpeaker(opt.term) : opt.term;
     b.onclick = e => answer(opt === t, b, e);
     wrap.appendChild(b);
   });
+  // In Quote Hunt, also re-label the prompt to make the framing clear
+  if (quoteHuntMode) {
+    $('qPromptLabel').textContent = 'WHO SAID IT?';
+  }
   bossQuestionStartedAt = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
   startQTimer();
 }
 function startQTimer() {
-  const totalTime = bossMode ? (bossActive ? bossActive.qTime : 7000) : Q_TIME;
+  const totalTime = finalSimMode ? FINAL_SIM_Q_TIME
+                  : quoteHuntMode ? 12000
+                  : bossMode ? (bossActive ? bossActive.qTime : 7000) : Q_TIME;
   qTimeLeft = totalTime;
   const fill = $('timerFill');
   fill.style.transition = 'none'; fill.style.width = '100%'; fill.className = 'timer-fill';
@@ -4535,6 +4942,10 @@ function qTimeOut() {
   setTimeout(() => { qIdx++; nextQuestion(); }, 1200);
 }
 function endQuiz() {
+  // FINAL SIMULATION + QUOTE HUNT have their own result flows
+  if (finalSimMode) return endFinalSim();
+  if (quoteHuntMode) return endQuoteHunt();
+  const gw = $('gradeWrap'); if (gw) gw.hidden = true;
   if (!bossMode) markCompleted('quiz');
   let isNewHi;
   const wasBoss = bossMode;

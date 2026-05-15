@@ -3,596 +3,446 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Corbin's Study Arcade — Mission Control</title>
+<title>Corbin's Study Arcade — Cabinet Select</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&family=Bungee&family=Anton&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-0: #04060f;
-    --bg-1: #0a0f24;
-    --bg-2: #131a3a;
-    --ink: #f1f5ff;
-    --ink-dim: #8a93b5;
-    --neon-cyan: #00e5ff;
-    --neon-magenta: #ff2dbb;
-    --neon-violet: #8a4fff;
-    --neon-lime: #c9ff3a;
-    --neon-amber: #ffb547;
-    --glass: rgba(255,255,255,0.05);
-    --glass-strong: rgba(255,255,255,0.09);
-    --border: rgba(255,255,255,0.12);
+    --paper: #fff6e6;
+    --paper-2: #ffe9b8;
+    --ink: #1a1410;
+    --ink-soft: #4a3a2a;
+    --ink-dim: #8a7560;
+    --hot: #ff3a5b;       /* arcade red */
+    --pop: #ffcc00;       /* coin yellow */
+    --cool: #00b8d4;      /* CRT cyan */
+    --mint: #4ade80;
+    --plum: #8a4fff;
+    --shadow: #1a1410;
+    --line: #1a1410;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; overflow-x: hidden; }
+  html, body { min-height: 100%; }
+  html { background: var(--paper); }
   body {
-    font-family: 'Space Grotesk', 'Outfit', system-ui, sans-serif;
-    background: var(--bg-0);
+    font-family: 'Outfit', system-ui, sans-serif;
+    background: var(--paper);
     color: var(--ink);
     min-height: 100vh;
-    position: relative;
     overflow-x: hidden;
+    position: relative;
   }
 
-  /* ===== Animated gradient mesh background ===== */
+  /* halftone texture overlay so the paper feels printed */
   body::before {
     content: '';
     position: fixed; inset: 0;
     background:
-      radial-gradient(60vmax 40vmax at 15% 12%, rgba(0,229,255,0.22), transparent 60%),
-      radial-gradient(50vmax 50vmax at 85% 20%, rgba(255,45,187,0.18), transparent 65%),
-      radial-gradient(70vmax 50vmax at 50% 100%, rgba(138,79,255,0.22), transparent 60%),
-      radial-gradient(40vmax 30vmax at 95% 90%, rgba(201,255,58,0.14), transparent 70%);
-    animation: drift 24s ease-in-out infinite alternate;
-    z-index: -2;
+      radial-gradient(circle at 1px 1px, rgba(26,20,16,0.18) 1px, transparent 1px),
+      linear-gradient(180deg, transparent 0%, rgba(255,204,0,0.08) 100%);
+    background-size: 6px 6px, 100% 100%;
+    pointer-events: none;
+    opacity: 0.65;
+    z-index: 1;
   }
-  @keyframes drift {
-    0%   { transform: translate(0,0) scale(1); }
-    50%  { transform: translate(-2%, 1%) scale(1.05); }
-    100% { transform: translate(2%, -1%) scale(0.98); }
-  }
-  /* Grid overlay */
   body::after {
     content: '';
     position: fixed; inset: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-    background-size: 64px 64px;
-    mask-image: radial-gradient(circle at 50% 40%, #000 0%, transparent 70%);
+    background-image: repeating-linear-gradient(
+      0deg, transparent 0 3px, rgba(0,0,0,0.025) 3px 4px
+    );
     pointer-events: none;
-    z-index: -1;
+    z-index: 2;
   }
+  main, header, footer { position: relative; z-index: 3; }
 
-  /* ===== Top bar ===== */
-  .topbar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 18px clamp(20px, 5vw, 64px);
-    gap: 16px;
-  }
-  .topbar-center {
-    flex: 1;
-    display: flex; align-items: center; justify-content: center;
-    gap: 14px;
+  /* ===== Top ticker bar ===== */
+  .ticker {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 9px 0;
+    overflow: hidden;
+    border-bottom: 4px solid var(--hot);
     font-family: 'JetBrains Mono', monospace;
     font-size: 11.5px;
-    letter-spacing: 0.14em;
-    color: var(--ink-dim);
-  }
-  .topbar-center b { color: var(--neon-amber); font-weight: 700; }
-  .topbar-center .sep {
-    width: 4px; height: 4px; border-radius: 50%;
-    background: rgba(255,255,255,0.2);
-  }
-  @media (max-width: 720px) {
-    .topbar-center { display: none; }
-  }
-  .brand {
-    display: flex; align-items: center; gap: 14px;
-    flex-shrink: 0;
-  }
-  .brand-dot {
-    width: 14px; height: 14px; border-radius: 50%;
-    background: var(--neon-cyan);
-    box-shadow: 0 0 18px var(--neon-cyan), 0 0 32px rgba(0,229,255,0.4);
-    animation: pulseDot 1.6s ease-in-out infinite;
-  }
-  @keyframes pulseDot {
-    0%,100% { transform: scale(1); opacity: 1; }
-    50%     { transform: scale(1.25); opacity: 0.75; }
-  }
-  .brand-name {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--ink-dim);
   }
-  .brand-name b { color: var(--ink); }
-
-  .status-pill {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 8px 14px;
-    background: var(--glass);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    color: var(--ink-dim);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+  .ticker-track {
+    display: inline-flex;
+    gap: 36px;
+    white-space: nowrap;
+    animation: ticker-scroll 28s linear infinite;
+    padding-left: 100%;
   }
-  .status-pill .dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--neon-lime);
-    box-shadow: 0 0 10px var(--neon-lime);
+  .ticker-track span b { color: var(--pop); font-weight: 700; }
+  .ticker-track .dot {
+    color: var(--hot);
+    margin: 0 2px;
+  }
+  @keyframes ticker-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
   }
 
-  /* ===== Hero ===== */
-  .hero {
+  /* ===== Header ===== */
+  .header {
+    padding: 36px clamp(20px, 5vw, 64px) 14px;
+    text-align: center;
     max-width: 1200px;
     margin: 0 auto;
-    padding: clamp(12px, 3vh, 32px) clamp(20px, 5vw, 64px) 16px;
-    text-align: center;
   }
-  .eyebrow {
+  .ribbon {
     display: inline-block;
+    background: var(--ink);
+    color: var(--pop);
+    padding: 8px 22px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.32em;
     text-transform: uppercase;
-    color: var(--neon-cyan);
-    padding: 8px 16px;
-    border: 1px solid rgba(0,229,255,0.35);
-    border-radius: 999px;
-    background: rgba(0,229,255,0.06);
     margin-bottom: 18px;
+    position: relative;
+    box-shadow: 6px 6px 0 var(--hot);
   }
-  .hero h1 {
-    font-family: 'Outfit', sans-serif;
-    font-weight: 900;
-    font-size: clamp(40px, 8vw, 88px);
-    line-height: 0.95;
-    letter-spacing: -0.03em;
-    margin-bottom: 20px;
-    background: linear-gradient(120deg, #fff 0%, var(--neon-cyan) 35%, var(--neon-magenta) 65%, var(--neon-lime) 100%);
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    animation: shiftGradient 8s ease-in-out infinite;
-  }
-  @keyframes shiftGradient {
-    0%, 100% { background-position: 0% 50%; }
-    50%      { background-position: 100% 50%; }
-  }
-  .hero h1 .small {
-    display: block;
-    font-size: 0.42em;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    color: var(--ink-dim);
-    -webkit-text-fill-color: var(--ink-dim);
-    margin-top: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    text-transform: uppercase;
-  }
-  .hero p.tagline {
-    font-size: clamp(15px, 1.6vw, 19px);
-    color: var(--ink-dim);
-    max-width: 640px;
-    margin: 0 auto;
-    line-height: 1.5;
-  }
-
-  /* ===== Mission card ===== */
-  .mission {
-    max-width: 720px;
-    margin: 32px auto 0;
-    padding: 20px 24px;
-    background: var(--glass);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    display: flex; align-items: center; gap: 18px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
-  .mission-icon {
-    flex: 0 0 56px;
-    height: 56px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-violet));
-    display: grid; place-items: center;
-    font-size: 26px;
-  }
-  .mission-text { flex: 1; text-align: left; }
-  .mission-text .label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--ink-dim);
-    margin-bottom: 4px;
-  }
-  .mission-text .body {
-    font-weight: 600;
-    font-size: 16px;
+  .ribbon b { color: var(--mint); }
+  .logo {
+    font-family: 'Bungee', 'Anton', system-ui;
+    font-size: clamp(48px, 10vw, 120px);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    margin: 6px 0 8px;
     color: var(--ink);
+    text-shadow:
+      4px 4px 0 var(--pop),
+      8px 8px 0 var(--hot),
+      12px 12px 0 rgba(26,20,16,0.18);
   }
-  .mission-text .body b {
-    color: var(--neon-cyan);
+  .logo .em {
+    display: block;
+    font-size: 0.46em;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    text-shadow: 2px 2px 0 var(--pop);
+    margin-top: 4px;
+    font-family: 'Bungee', sans-serif;
+  }
+  .header-meta {
+    display: inline-flex; align-items: center; gap: 14px;
+    margin-top: 14px;
+    padding: 10px 18px;
+    background: var(--paper-2);
+    border: 3px solid var(--line);
+    box-shadow: 5px 5px 0 var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .header-meta b { color: var(--hot); font-weight: 700; font-size: 13px; }
+  .header-meta .sep {
+    width: 5px; height: 5px;
+    background: var(--ink);
+    transform: rotate(45deg);
+  }
+  @media (max-width: 540px) {
+    .header-meta { flex-wrap: wrap; justify-content: center; }
   }
 
-  /* ===== Subject grid ===== */
-  .subjects {
+  /* ===== Insert coin prompt ===== */
+  .insert-coin {
+    margin: 16px 0 30px;
+    text-align: center;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: var(--hot);
+    animation: blink 1s steps(2) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0.2; } }
+
+  /* ===== Cabinet grid ===== */
+  .cabinets {
     max-width: 1200px;
-    margin: 48px auto 0;
-    padding: 0 clamp(20px, 5vw, 64px);
+    margin: 8px auto 0;
+    padding: 0 clamp(16px, 5vw, 64px);
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 22px;
   }
-  .subject {
+  .cabinet {
     position: relative;
-    display: block;
-    padding: 28px;
-    border-radius: 22px;
-    background: var(--glass-strong);
-    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
     text-decoration: none;
-    color: inherit;
+    color: var(--ink);
+    background: var(--paper);
+    border: 4px solid var(--line);
+    border-radius: 18px;
+    padding: 0;
     overflow: hidden;
-    isolation: isolate;
-    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4), border-color 0.35s;
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    min-height: 280px;
-    display: flex; flex-direction: column; justify-content: space-between;
+    transform: rotate(0deg);
+    box-shadow: 10px 10px 0 var(--ink);
+    transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.4), box-shadow 0.22s;
+    min-height: 360px;
+    cursor: pointer;
   }
-  .subject:hover { transform: translateY(-6px) scale(1.01); border-color: rgba(255,255,255,0.28); }
-  .subject:active { transform: translateY(-2px) scale(0.99); }
+  .cabinet:hover {
+    transform: translate(-3px, -3px) rotate(-1deg);
+    box-shadow: 14px 14px 0 var(--ink);
+  }
+  .cabinet:active {
+    transform: translate(4px, 4px) rotate(0deg);
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+  .cabinet[data-subject="history"] { --tone: var(--pop); --tone-2: var(--hot); }
+  .cabinet[data-subject="ela"]     { --tone: var(--plum); --tone-2: var(--pop); }
+  .cabinet[data-subject="science"] { --tone: var(--cool); --tone-2: var(--mint); }
+  .cabinet[data-subject="latin"]   { --tone: var(--mint); --tone-2: var(--cool); }
+  .cabinet[data-subject="algebra"] { --tone: var(--hot); --tone-2: var(--plum); }
 
-  .subject::before {
+  .cab-marquee {
+    background: var(--ink);
+    color: var(--tone);
+    padding: 14px 18px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9.5px;
+    letter-spacing: 2px;
+    text-align: center;
+    border-bottom: 3px solid var(--tone-2);
+    text-transform: uppercase;
+    position: relative;
+  }
+  .cab-marquee::before, .cab-marquee::after {
+    content: '';
+    position: absolute; top: 50%;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--tone);
+    box-shadow: 0 0 8px var(--tone);
+    transform: translateY(-50%);
+  }
+  .cab-marquee::before { left: 10px; animation: bulb 1.2s ease-in-out infinite; }
+  .cab-marquee::after  { right: 10px; animation: bulb 1.2s ease-in-out infinite 0.6s; }
+  @keyframes bulb {
+    0%,100% { opacity: 1; }
+    50%     { opacity: 0.25; }
+  }
+
+  .cab-screen {
+    background: linear-gradient(165deg, var(--tone) 0%, var(--tone-2) 100%);
+    padding: 28px 22px 18px;
+    position: relative;
+    color: var(--ink);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .cab-screen::after {
     content: '';
     position: absolute; inset: 0;
-    background: var(--accent-grad);
-    opacity: 0.18;
-    z-index: -1;
-    transition: opacity 0.35s;
+    background-image: repeating-linear-gradient(
+      0deg, transparent 0 2px, rgba(0,0,0,0.06) 2px 3px
+    );
+    pointer-events: none;
   }
-  .subject:hover::before { opacity: 0.32; }
-
-  .subject::after {
+  .cab-screen::before {
     content: '';
     position: absolute;
-    width: 220px; height: 220px;
-    top: -80px; right: -80px;
+    top: -40px; left: -40px;
+    width: 180px; height: 180px;
     border-radius: 50%;
-    background: var(--accent-glow);
-    filter: blur(48px);
-    opacity: 0.6;
-    z-index: -1;
-    transition: transform 0.5s ease;
+    background: radial-gradient(circle, rgba(255,255,255,0.4), transparent 70%);
+    filter: blur(20px);
+    pointer-events: none;
   }
-  .subject:hover::after { transform: translate(-12px, 12px) scale(1.1); }
-
-  .subject[data-subject="history"] {
-    --accent: #ffb547;
-    --accent-grad: linear-gradient(135deg, rgba(255,181,71,0.4), rgba(255,80,40,0.4));
-    --accent-glow: radial-gradient(circle, rgba(255,181,71,0.55), transparent 60%);
-  }
-  .subject[data-subject="ela"] {
-    --accent: #c084ff;
-    --accent-grad: linear-gradient(135deg, rgba(192,132,255,0.4), rgba(255,80,160,0.4));
-    --accent-glow: radial-gradient(circle, rgba(192,132,255,0.55), transparent 60%);
-  }
-  .subject[data-subject="science"] {
-    --accent: #00e5ff;
-    --accent-grad: linear-gradient(135deg, rgba(0,229,255,0.3), rgba(60,140,255,0.3));
-    --accent-glow: radial-gradient(circle, rgba(0,229,255,0.4), transparent 60%);
-  }
-  .subject[data-subject="latin"] {
-    --accent: #c9ff3a;
-    --accent-grad: linear-gradient(135deg, rgba(201,255,58,0.3), rgba(80,255,180,0.3));
-    --accent-glow: radial-gradient(circle, rgba(201,255,58,0.4), transparent 60%);
-  }
-  .subject[data-subject="algebra"] {
-    --accent: #ff2dbb;
-    --accent-grad: linear-gradient(135deg, rgba(255,45,187,0.3), rgba(255,80,80,0.3));
-    --accent-glow: radial-gradient(circle, rgba(255,45,187,0.4), transparent 60%);
-  }
-
-  .subject .badge-row {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 24px;
-  }
-  .subject .badge {
-    display: inline-flex; align-items: center; gap: 7px;
-    padding: 6px 12px;
-    background: rgba(0,0,0,0.35);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 999px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    color: var(--ink);
-    text-transform: uppercase;
-  }
-  .subject .badge.dot::before {
-    content: ''; width: 6px; height: 6px; border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 8px var(--accent);
-  }
-  .subject .badge.locked {
-    color: var(--ink-dim);
-  }
-  .subject .glyph {
-    font-size: 44px;
+  .cab-glyph {
+    font-size: 76px;
     line-height: 1;
-    filter: drop-shadow(0 4px 18px rgba(0,0,0,0.5));
+    filter: drop-shadow(3px 3px 0 var(--ink));
+    margin-bottom: 8px;
   }
-  .subject h2 {
-    font-family: 'Outfit', sans-serif;
-    font-weight: 900;
-    font-size: 30px;
-    line-height: 1;
-    letter-spacing: -0.02em;
+  .cab-title {
+    font-family: 'Bungee', sans-serif;
+    font-size: 32px;
+    line-height: 0.95;
     margin-bottom: 6px;
-  }
-  .subject .subtitle {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--ink-dim);
-    margin-bottom: 18px;
-  }
-  .subject .blurb {
-    font-size: 13.5px;
-    line-height: 1.55;
-    color: var(--ink-dim);
-    margin-bottom: 22px;
-  }
-  .subject .stats {
-    display: flex; gap: 18px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--ink-dim);
-  }
-  .subject .stats b {
     color: var(--ink);
+    text-shadow: 2px 2px 0 rgba(255,255,255,0.55);
+  }
+  .cab-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+  .cab-blurb {
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--ink);
+    margin-bottom: auto;
+    max-width: 90%;
+  }
+  .cab-foot {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 12px 18px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .cab-stats {
+    color: var(--ink-dim);
+  }
+  .cab-stats b {
+    color: var(--paper); font-weight: 700;
+  }
+  .cab-enter {
+    color: var(--tone);
     font-weight: 700;
+    text-shadow: 0 0 8px currentColor;
   }
-  .subject .arrow {
-    position: absolute;
-    bottom: 24px; right: 24px;
-    width: 38px; height: 38px;
-    border-radius: 50%;
-    background: var(--accent);
-    color: var(--bg-0);
-    display: grid; place-items: center;
-    font-weight: 900;
-    font-size: 18px;
-    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+  .cabinet:hover .cab-enter::after {
+    content: ' →';
+    color: var(--tone);
   }
-  .subject:hover .arrow { transform: rotate(-45deg) translateX(4px); }
 
-  .subject.locked {
+  .cabinet.locked {
     pointer-events: none;
     opacity: 0.55;
   }
-  .subject.locked .arrow { background: rgba(255,255,255,0.18); color: var(--ink-dim); }
+  .cabinet.locked .cab-marquee { color: var(--ink-dim); }
+  .cabinet.locked .cab-enter   { color: var(--ink-dim); }
+  .cabinet.locked .cab-screen  { filter: grayscale(0.5); }
 
-  /* ===== Final simulation CTA ===== */
-  .final-sim {
-    max-width: 1200px;
-    margin: 48px auto 0;
-    padding: 0 clamp(20px, 5vw, 64px);
-  }
-  .final-sim-card {
-    position: relative;
-    display: block;
-    text-decoration: none;
-    color: inherit;
-    border-radius: 28px;
-    padding: clamp(28px, 4vw, 48px);
-    background: linear-gradient(135deg, rgba(255,45,187,0.18), rgba(138,79,255,0.18), rgba(0,229,255,0.18));
-    border: 1px solid rgba(255,255,255,0.18);
-    overflow: hidden;
-    isolation: isolate;
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.4), box-shadow 0.4s;
-  }
-  .final-sim-card:hover {
-    transform: translateY(-4px) scale(1.005);
-    box-shadow: 0 28px 80px rgba(255,45,187,0.22), 0 0 120px rgba(138,79,255,0.18);
-  }
-  .final-sim-card::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: repeating-linear-gradient(
-      45deg,
-      transparent 0 24px,
-      rgba(255,255,255,0.03) 24px 25px
-    );
-    z-index: -1;
-    pointer-events: none;
-  }
-  .final-sim-card::after {
-    content: '';
-    position: absolute;
-    width: 360px; height: 360px;
-    top: -160px; right: -120px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,45,187,0.4), transparent 65%);
-    filter: blur(50px);
-    z-index: -1;
-    animation: drift-final 18s ease-in-out infinite alternate;
-  }
-  @keyframes drift-final {
-    from { transform: translate(0,0); }
-    to   { transform: translate(40px, 20px) scale(1.1); }
-  }
-  .fs-top {
-    display: flex; align-items: center; gap: 14px;
-    margin-bottom: 16px;
-  }
-  .fs-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 6px 14px;
-    background: rgba(255,45,187,0.18);
-    border: 1px solid rgba(255,45,187,0.4);
-    border-radius: 999px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    letter-spacing: 0.18em;
-    color: #ffafe5;
-    text-transform: uppercase;
-  }
-  .fs-badge .pulse {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--neon-magenta);
-    box-shadow: 0 0 10px var(--neon-magenta);
-    animation: pulse-final 1.2s ease-in-out infinite;
-  }
-  @keyframes pulse-final {
-    0%,100% { opacity: 1; transform: scale(1); }
-    50%     { opacity: 0.6; transform: scale(1.4); }
-  }
-  .fs-headline {
-    font-family: 'Outfit', sans-serif;
-    font-weight: 900;
-    font-size: clamp(28px, 4.5vw, 52px);
-    line-height: 1;
-    letter-spacing: -0.02em;
-    margin-bottom: 14px;
-  }
-  .fs-headline em {
-    font-style: normal;
-    background: linear-gradient(120deg, var(--neon-magenta) 0%, var(--neon-amber) 60%, var(--neon-lime) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .fs-blurb {
-    font-size: clamp(14px, 1.4vw, 17px);
-    color: var(--ink-dim);
-    max-width: 640px;
-    line-height: 1.55;
-    margin-bottom: 22px;
-  }
-  .fs-stats {
-    display: flex; flex-wrap: wrap; gap: 20px;
-    margin-bottom: 24px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    color: var(--ink-dim);
-    letter-spacing: 0.06em;
-  }
-  .fs-stats b {
-    color: var(--ink);
-    font-weight: 700;
-    font-size: 18px;
-    display: block;
-    letter-spacing: 0;
-    font-family: 'Outfit', sans-serif;
-  }
-  .fs-cta {
-    display: inline-flex; align-items: center; gap: 10px;
-    padding: 14px 24px;
-    background: linear-gradient(135deg, var(--neon-magenta), var(--neon-violet));
-    border-radius: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: #fff;
-    box-shadow: 0 12px 32px rgba(255,45,187,0.35);
-    transition: transform 0.25s, box-shadow 0.25s;
-  }
-  .final-sim-card:hover .fs-cta {
-    transform: translateX(4px);
-    box-shadow: 0 16px 44px rgba(255,45,187,0.5);
-  }
-
-  /* ===== Bottom panels ===== */
-  .panels {
+  /* ===== "How to play" strip ===== */
+  .howto {
     max-width: 1200px;
     margin: 56px auto 0;
     padding: 0 clamp(20px, 5vw, 64px);
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 22px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
   }
-  @media (max-width: 760px) {
-    .panels { grid-template-columns: 1fr; }
+  .howto-card {
+    background: var(--paper);
+    border: 3px solid var(--line);
+    padding: 18px 18px 20px;
+    box-shadow: 6px 6px 0 var(--ink);
+    position: relative;
   }
-  .panel {
-    background: var(--glass);
-    border: 1px solid var(--border);
-    border-radius: 22px;
-    padding: 26px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+  .howto-card .num {
+    position: absolute;
+    top: -16px; left: 16px;
+    background: var(--hot);
+    color: var(--paper);
+    border: 3px solid var(--line);
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: 'Bungee', sans-serif;
+    font-size: 18px;
+    box-shadow: 3px 3px 0 var(--ink);
   }
-  .panel h3 {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--ink-dim);
-    margin-bottom: 14px;
+  .howto-card h3 {
+    font-family: 'Bungee', sans-serif;
+    font-size: 18px;
+    margin: 8px 0 6px;
+    letter-spacing: 0.5px;
   }
-  .panel .big {
-    font-family: 'Outfit', sans-serif;
-    font-weight: 900;
-    font-size: 34px;
-    letter-spacing: -0.02em;
-    margin-bottom: 6px;
-  }
-  .panel .desc {
-    font-size: 14px;
-    color: var(--ink-dim);
-    line-height: 1.5;
-  }
-  .panel .tips {
-    display: grid; gap: 10px;
-    margin-top: 14px;
-  }
-  .panel .tips li {
-    list-style: none;
-    display: flex; align-items: flex-start; gap: 10px;
+  .howto-card p {
     font-size: 13.5px;
-    color: var(--ink);
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .howto-card p b { color: var(--ink); }
+
+  /* ===== Science science panel ===== */
+  .science-panel {
+    max-width: 1200px;
+    margin: 56px auto 0;
+    padding: clamp(24px, 4vw, 38px) clamp(20px, 5vw, 64px);
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .science-panel::before {
+    content: '';
+    position: absolute;
+    width: 360px; height: 360px;
+    top: -120px; right: -120px;
+    background: radial-gradient(circle, var(--hot), transparent 70%);
+    filter: blur(60px);
+    opacity: 0.6;
+  }
+  .science-panel h2 {
+    font-family: 'Bungee', sans-serif;
+    font-size: clamp(28px, 4vw, 40px);
+    color: var(--pop);
+    margin-bottom: 8px;
+    line-height: 1;
+    text-shadow: 3px 3px 0 var(--hot);
+  }
+  .science-panel .blurb {
+    font-size: 15px;
+    color: rgba(255,255,255,0.7);
+    max-width: 640px;
+    margin-bottom: 18px;
+    line-height: 1.55;
+  }
+  .science-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    position: relative;
+    z-index: 1;
+  }
+  .science-list li {
+    list-style: none;
+    border: 2px solid rgba(255,255,255,0.18);
+    padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
     line-height: 1.45;
+    background: rgba(255,255,255,0.04);
   }
-  .panel .tips li::before {
-    content: '◆';
-    color: var(--neon-cyan);
-    margin-top: 2px;
-    flex: 0 0 auto;
-  }
+  .science-list li b { color: var(--pop); display: block; margin-bottom: 2px; letter-spacing: 0.04em; }
 
   /* ===== Footer ===== */
   footer {
     max-width: 1200px;
-    margin: 56px auto 0;
-    padding: 32px clamp(20px, 5vw, 64px);
+    margin: 48px auto 0;
+    padding: 28px clamp(20px, 5vw, 64px) 48px;
     text-align: center;
-    color: var(--ink-dim);
+    color: var(--ink-soft);
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
+    font-size: 11px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
   }
-  footer a { color: var(--neon-cyan); text-decoration: none; }
-  footer .countdown b { color: var(--neon-amber); }
+  footer a { color: var(--hot); text-decoration: none; font-weight: 700; }
+  footer a:hover { text-decoration: underline; }
+  footer .stamp {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 6px 14px;
+    border: 2px dashed var(--ink);
+    color: var(--ink);
+    transform: rotate(-2deg);
+    background: var(--pop);
+    font-size: 10px;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
 
   /* ===== Reveal animation ===== */
   .reveal {
@@ -601,15 +451,13 @@
     animation: revealIn 0.7s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
   }
   .reveal-1 { animation-delay: 0.05s; }
-  .reveal-2 { animation-delay: 0.15s; }
-  .reveal-3 { animation-delay: 0.25s; }
-  .reveal-4 { animation-delay: 0.35s; }
-  .reveal-5 { animation-delay: 0.45s; }
-  .reveal-6 { animation-delay: 0.55s; }
-  .reveal-7 { animation-delay: 0.65s; }
-  @keyframes revealIn {
-    to { opacity: 1; transform: translateY(0); }
-  }
+  .reveal-2 { animation-delay: 0.12s; }
+  .reveal-3 { animation-delay: 0.22s; }
+  .reveal-4 { animation-delay: 0.32s; }
+  .reveal-5 { animation-delay: 0.42s; }
+  .reveal-6 { animation-delay: 0.52s; }
+  .reveal-7 { animation-delay: 0.62s; }
+  @keyframes revealIn { to { opacity: 1; transform: translateY(0); } }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
     .reveal { opacity: 1; transform: none; }
@@ -618,203 +466,195 @@
 </head>
 <body>
 
-<header class="topbar reveal reveal-1">
-  <div class="brand">
-    <div class="brand-dot"></div>
-    <div class="brand-name">CORBIN'S <b>STUDY ARCADE</b> // v1.0</div>
+<div class="ticker">
+  <div class="ticker-track">
+    <span>// 🎮 CORBIN'S STUDY ARCADE <span class="dot">●</span> CABINET SELECT</span>
+    <span>FINALS IN <b id="topCountdown">—</b></span>
+    <span class="dot">●</span>
+    <span><b>178</b> TERMS LOADED</span>
+    <span class="dot">●</span>
+    <span><b>2</b> SUBJECTS LIVE</span>
+    <span class="dot">●</span>
+    <span>BUILT FOR <b>CORBIN</b></span>
+    <span class="dot">●</span>
+    <span>INSERT COIN TO PLAY</span>
+    <!-- duplicate for seamless loop -->
+    <span>// 🎮 CORBIN'S STUDY ARCADE <span class="dot">●</span> CABINET SELECT</span>
+    <span>FINALS IN <b id="topCountdown2">—</b></span>
+    <span class="dot">●</span>
+    <span><b>178</b> TERMS LOADED</span>
+    <span class="dot">●</span>
+    <span><b>2</b> SUBJECTS LIVE</span>
+    <span class="dot">●</span>
+    <span>BUILT FOR <b>CORBIN</b></span>
+    <span class="dot">●</span>
+    <span>INSERT COIN TO PLAY</span>
   </div>
-  <div class="topbar-center" id="topbarCenter">
-    <span>FINALS IN</span>
-    <b id="topCountdown">—</b>
+</div>
+
+<header class="header">
+  <div class="ribbon reveal reveal-1">🪙 PLAYER 1 <b>READY</b> · 8TH GRADE FINALS PREP</div>
+  <h1 class="logo reveal reveal-2">
+    STUDY<br>ARCADE
+    <span class="em">// pick your cabinet</span>
+  </h1>
+  <div class="header-meta reveal reveal-3">
+    <span>Finals start</span> <b>2026-05-20</b>
     <span class="sep"></span>
-    <span>178 TERMS LOADED</span>
+    <span>Built for</span> <b>Corbin</b>
     <span class="sep"></span>
-    <span>2 SUBJECTS LIVE</span>
+    <span>Powered by</span> <b>memory science</b>
   </div>
-  <div class="status-pill"><span class="dot"></span> <span id="onlineLabel">SYSTEM ONLINE</span></div>
+  <div class="insert-coin reveal reveal-4">▶ INSERT COIN ◀</div>
 </header>
 
-<section class="hero">
-  <div class="eyebrow reveal reveal-2">// MISSION CONTROL</div>
-  <h1 class="reveal reveal-3">
-    Pick your subject.<br>Wreck the finals.
-    <span class="small">Built for Corbin · 8th grade · Finals start May 20</span>
-  </h1>
-  <p class="tagline reveal reveal-4">Every site below uses research-backed memory science — active recall, spaced repetition, retrieval practice — wrapped in arcade games your brain won't want to put down.</p>
-
-  <div class="mission reveal reveal-5">
-    <div class="mission-icon">🎯</div>
-    <div class="mission-text">
-      <div class="label">Today's mission</div>
-      <div class="body" id="missionText">Pick a subject and clock <b>20 questions</b>. Streak grows. Brain wins.</div>
+<main>
+<section class="cabinets">
+  <a class="cabinet reveal reveal-5" data-subject="history" href="./history/">
+    <div class="cab-marquee">🏛 CABINET 01 · HISTORY</div>
+    <div class="cab-screen">
+      <div class="cab-glyph">🏛️</div>
+      <div class="cab-title">UNITED STATES</div>
+      <div class="cab-sub">// Progressive Era → WWII</div>
+      <div class="cab-blurb">102 terms · 8 topics · CRT-amber arcade vibe · brand-new <b>TIMELINE</b> mode where you drag events into chronological order.</div>
     </div>
-  </div>
-</section>
-
-<section class="subjects">
-  <a class="subject reveal reveal-5" data-subject="history" href="./history/">
-    <div class="badge-row">
-      <span class="badge dot">LIVE</span>
-      <span class="glyph">🏛️</span>
+    <div class="cab-foot">
+      <span class="cab-stats"><b>102</b> terms · <b>10</b> modes</span>
+      <span class="cab-enter">ENTER</span>
     </div>
-    <div>
-      <h2>History</h2>
-      <div class="subtitle">// US Finals — Progressive Era → WWII</div>
-      <p class="blurb">102 terms across 8 topics. Sepia-stained CRT vibes. New game mode: Timeline — drag events into chronological order.</p>
-    </div>
-    <div class="stats">
-      <span><b>102</b> terms</span>
-      <span><b>8</b> topics</span>
-      <span><b>10+</b> game modes</span>
-    </div>
-    <div class="arrow">→</div>
   </a>
 
-  <a class="subject reveal reveal-6" data-subject="ela" href="./ela/">
-    <div class="badge-row">
-      <span class="badge dot">LIVE</span>
-      <span class="glyph">📖</span>
+  <a class="cabinet reveal reveal-5" data-subject="ela" href="./ela/">
+    <div class="cab-marquee">📖 CABINET 02 · ENGLISH / ELA</div>
+    <div class="cab-screen">
+      <div class="cab-glyph">📖</div>
+      <div class="cab-title">LIT · MUCH ADO · CRUSOE</div>
+      <div class="cab-sub">// Theatre playbill aesthetic</div>
+      <div class="cab-blurb">76 terms · 6 topics · vintage theatre + manuscript vibe · brand-new <b>QUOTE HUNT</b> mode — read the line, name the speaker.</div>
     </div>
-    <div>
-      <h2>English / ELA</h2>
-      <div class="subtitle">// Lit Terms · Much Ado · Crusoe · Themes</div>
-      <p class="blurb">76 terms across 6 topics. Theatre marquee + library-at-night design. New game mode: Quote Hunt — who said it?</p>
+    <div class="cab-foot">
+      <span class="cab-stats"><b>76</b> terms · <b>10</b> modes</span>
+      <span class="cab-enter">ENTER</span>
     </div>
-    <div class="stats">
-      <span><b>76</b> terms</span>
-      <span><b>6</b> topics</span>
-      <span><b>10+</b> game modes</span>
-    </div>
-    <div class="arrow">→</div>
   </a>
 
-  <div class="subject locked reveal reveal-6" data-subject="science">
-    <div class="badge-row">
-      <span class="badge locked">SOON</span>
-      <span class="glyph">⚛️</span>
+  <div class="cabinet locked reveal reveal-6" data-subject="science">
+    <div class="cab-marquee">⚛ CABINET 03 · SCIENCE — SOON</div>
+    <div class="cab-screen">
+      <div class="cab-glyph">⚛️</div>
+      <div class="cab-title">WAVES</div>
+      <div class="cab-sub">// Reflection · Refraction</div>
+      <div class="cab-blurb">Transverse vs. longitudinal, light bending, ray diagrams. Drop the study guide and this cabinet boots up.</div>
     </div>
-    <div>
-      <h2>Science</h2>
-      <div class="subtitle">// Waves · Reflection · Refraction</div>
-      <p class="blurb">Transverse vs longitudinal, refraction, reflection — drop the study guide and we'll wire it in.</p>
+    <div class="cab-foot">
+      <span class="cab-stats">queued</span>
+      <span class="cab-enter">LOCKED</span>
     </div>
-    <div class="stats">
-      <span><b>—</b> terms</span>
-      <span>queued</span>
-    </div>
-    <div class="arrow">→</div>
   </div>
 
-  <div class="subject locked reveal reveal-7" data-subject="latin">
-    <div class="badge-row">
-      <span class="badge locked">SOON</span>
-      <span class="glyph">🏺</span>
+  <div class="cabinet locked reveal reveal-6" data-subject="latin">
+    <div class="cab-marquee">🏺 CABINET 04 · LATIN — SOON</div>
+    <div class="cab-screen">
+      <div class="cab-glyph">🏺</div>
+      <div class="cab-title">DECLENSIONS</div>
+      <div class="cab-sub">// 16 chapters of grammar</div>
+      <div class="cab-blurb">Vocab, endings, conjugations. Send the chapter list and a Latin-specific mode lands here.</div>
     </div>
-    <div>
-      <h2>Latin</h2>
-      <div class="subtitle">// 16 chapters of grammar</div>
-      <p class="blurb">Declensions, conjugations, vocab. Drop the chapter list and a Latin-specific game mode will land here.</p>
+    <div class="cab-foot">
+      <span class="cab-stats">queued</span>
+      <span class="cab-enter">LOCKED</span>
     </div>
-    <div class="stats">
-      <span><b>—</b> terms</span>
-      <span>queued</span>
-    </div>
-    <div class="arrow">→</div>
   </div>
 
-  <div class="subject locked reveal reveal-7" data-subject="algebra">
-    <div class="badge-row">
-      <span class="badge locked">SOON</span>
-      <span class="glyph">🧮</span>
+  <div class="cabinet locked reveal reveal-7" data-subject="algebra">
+    <div class="cab-marquee">🧮 CABINET 05 · ALGEBRA — SOON</div>
+    <div class="cab-screen">
+      <div class="cab-glyph">🧮</div>
+      <div class="cab-title">EQUATION SNIPER</div>
+      <div class="cab-sub">// Slope, factor, solve</div>
+      <div class="cab-blurb">Equation Sniper + Slope Surfer cabinets will live here. Need the study guide first.</div>
     </div>
-    <div>
-      <h2>Algebra</h2>
-      <div class="subtitle">// Study guide pending</div>
-      <p class="blurb">Drop the algebra study guide and Equation Sniper / Slope Surfer modes will get built.</p>
+    <div class="cab-foot">
+      <span class="cab-stats">queued</span>
+      <span class="cab-enter">LOCKED</span>
     </div>
-    <div class="stats">
-      <span><b>—</b> terms</span>
-      <span>queued</span>
-    </div>
-    <div class="arrow">→</div>
   </div>
 </section>
 
-<section class="final-sim reveal reveal-7">
-  <a class="final-sim-card" href="./finals-sim/">
-    <div class="fs-top">
-      <span class="fs-badge"><span class="pulse"></span> Final Simulation Test</span>
-    </div>
-    <div class="fs-headline">When you think you're ready —<br><em>simulate the real thing.</em></div>
-    <p class="fs-blurb">Cross-subject finals exam: history AND ELA in one shuffled drill. Tight clocks. No filtering by topic. No mercy. Get your grade letter at the end and a topic-by-topic accuracy report. Use this when you want to know if you'd actually pass tomorrow.</p>
-    <div class="fs-stats">
-      <span>TERMS POOL<br><b>178</b></span>
-      <span>QUESTIONS<br><b>30</b></span>
-      <span>TIME / Q<br><b>5 sec</b></span>
-      <span>SUBJECTS<br><b>History + ELA</b></span>
-    </div>
-    <span class="fs-cta">Take the simulation →</span>
-  </a>
+<section class="howto reveal reveal-7">
+  <div class="howto-card">
+    <div class="num">1</div>
+    <h3>Pick a cabinet</h3>
+    <p>Tap a subject above. Each one has its own <b>look</b> and its own <b>games</b> — no recolored clones.</p>
+  </div>
+  <div class="howto-card">
+    <div class="num">2</div>
+    <h3>Play 10 min</h3>
+    <p>Run <b>Quick Play</b> first. Drill the missed-terms pill when it lights up. Beat the FINAL BOSS for the topic.</p>
+  </div>
+  <div class="howto-card">
+    <div class="num">3</div>
+    <h3>Final Simulation</h3>
+    <p>Each subject has a <b>FINAL SIM</b> at the bottom of its home — the real-test dress rehearsal.</p>
+  </div>
+  <div class="howto-card">
+    <div class="num">4</div>
+    <h3>Streak daily</h3>
+    <p>10 minutes per day in each subject beats a 90-minute panic session. <b>The streak is the game.</b></p>
+  </div>
 </section>
 
-<section class="panels">
-  <div class="panel reveal reveal-7">
-    <h3>// Study science under the hood</h3>
-    <div class="big">Built on what actually works.</div>
-    <p class="desc">Every game in here maps to a peer-reviewed memory technique. No filler.</p>
-    <ul class="tips">
-      <li><b>Active recall</b> — testing > re-reading (Roediger &amp; Karpicke)</li>
-      <li><b>Spaced repetition</b> — SM-2 forgetting-curve drill on missed terms</li>
-      <li><b>Interleaving</b> — mix topics, beat blocked practice</li>
-      <li><b>Generation effect</b> — produce the answer, don't just recognize</li>
-      <li><b>Method of loci</b> — coming: Memory Palace mode</li>
-    </ul>
-  </div>
-  <div class="panel reveal reveal-7">
-    <h3>// How to use this</h3>
-    <div class="big">Daily routine.</div>
-    <p class="desc">10 minutes per subject per day beats 90 minutes the night before. Promise.</p>
-    <ul class="tips">
-      <li>Open a subject → hit <b>Quick Play</b> first</li>
-      <li>Drill the <b>Missed Terms</b> pill when it lights up</li>
-      <li>Finish with one round of <b>Final Boss</b> if you cleared 25+ terms</li>
-      <li>Streak grows daily. Don't skip days — that's the whole game</li>
-    </ul>
-  </div>
+<section class="science-panel reveal reveal-7">
+  <h2>Why this actually works</h2>
+  <p class="blurb">Every game maps to a real memory technique. No filler, no busywork.</p>
+  <ul class="science-list">
+    <li><b>Active recall</b>Testing &gt; rereading. Flash &amp; Type force retrieval.</li>
+    <li><b>Spaced repetition</b>Missed-terms drill uses the forgetting curve.</li>
+    <li><b>Interleaving</b>Quick Play mixes topics; mixed beats blocked.</li>
+    <li><b>Generation effect</b>Type It makes you produce, not recognize.</li>
+    <li><b>Sequential encoding</b>Timeline mode = order is a retrieval cue.</li>
+    <li><b>Speaker recognition</b>Quote Hunt strengthens character associations.</li>
+  </ul>
 </section>
+</main>
 
 <footer>
-  <div class="countdown" id="countdown">Loading countdown…</div>
-  <div style="margin-top: 10px;">
-    Built with neon, caffeine, and memory science. <a href="https://github.com/J4m3sdev/corbins-study-arcade" target="_blank" rel="noopener">View source</a>.
+  <div id="countdown">// loading countdown…</div>
+  <div class="stamp">// Built with neon &amp; memory science</div>
+  <div style="margin-top: 14px;">
+    <a href="https://github.com/J4m3sdev/corbins-study-arcade" target="_blank" rel="noopener">VIEW SOURCE</a>
   </div>
 </footer>
 
 <script>
-  // Countdown to finals (start date 2026-05-20)
+  // Countdown to finals (2026-05-20)
   (function () {
     const FINALS = new Date('2026-05-20T08:00:00');
     const elFoot = document.getElementById('countdown');
-    const elTop = document.getElementById('topCountdown');
+    const elTop  = document.getElementById('topCountdown');
+    const elTop2 = document.getElementById('topCountdown2');
     function tick() {
       const now = new Date();
       const ms = FINALS - now;
       if (ms <= 0) {
-        if (elFoot) elFoot.innerHTML = '// FINALS WEEK IN PROGRESS — <b>YOU GOT THIS</b>';
-        if (elTop) elTop.textContent = 'IN PROGRESS';
+        if (elFoot) elFoot.innerHTML = '// FINALS WEEK IN PROGRESS — YOU GOT THIS';
+        if (elTop)  elTop.textContent = 'IN PROGRESS';
+        if (elTop2) elTop2.textContent = 'IN PROGRESS';
         return;
       }
       const days = Math.floor(ms / 86400000);
       const hours = Math.floor((ms % 86400000) / 3600000);
       const mins = Math.floor((ms % 3600000) / 60000);
-      if (elFoot) elFoot.innerHTML = `// FINALS IN <b>${days}d ${hours}h ${mins}m</b> — DON'T BLINK`;
-      if (elTop)  elTop.textContent = `${days}d ${hours}h ${mins}m`;
+      const compact = `${days}d ${hours}h ${mins}m`;
+      if (elFoot) elFoot.innerHTML = `// FINALS IN <b style="color:var(--hot)">${compact}</b> — DON'T BLINK`;
+      if (elTop)  elTop.textContent = compact;
+      if (elTop2) elTop2.textContent = compact;
     }
     tick();
     setInterval(tick, 30000);
   })();
 
-  // Tap subject = nice click sound (Web Audio, no asset)
+  // Coin chirp on cabinet hover/click
   let ac;
   function chirp(freq) {
     if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; } }
@@ -822,12 +662,12 @@
     o.type = 'square';
     o.frequency.setValueAtTime(freq, ac.currentTime);
     o.frequency.exponentialRampToValueAtTime(freq * 1.6, ac.currentTime + 0.08);
-    g.gain.setValueAtTime(0.06, ac.currentTime);
+    g.gain.setValueAtTime(0.05, ac.currentTime);
     g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.18);
     o.connect(g); g.connect(ac.destination);
     o.start(); o.stop(ac.currentTime + 0.2);
   }
-  document.querySelectorAll('.subject:not(.locked)').forEach(el => {
+  document.querySelectorAll('.cabinet:not(.locked)').forEach(el => {
     el.addEventListener('click', () => chirp(660));
     el.addEventListener('mouseenter', () => chirp(440));
   });

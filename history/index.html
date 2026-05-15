@@ -339,6 +339,208 @@
   body.boss-mode .quiz-prompt { border-left-color: var(--pink); }
   body.boss-mode .quiz-prompt .label { color: var(--pink); }
 
+  /* ---------- FINAL SIMULATION CTA (bottom-of-home, per-subject) ---------- */
+  .final-sim-cta {
+    margin-top: 28px;
+    padding: 28px clamp(20px, 4vw, 36px);
+    background: linear-gradient(135deg, rgba(255,40,80,0.16), rgba(255,165,45,0.10));
+    border: 2px solid var(--red);
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.4), box-shadow 0.25s;
+    box-shadow: 0 12px 36px rgba(255,40,80,0.18);
+  }
+  .final-sim-cta:hover {
+    transform: translateY(-4px) scale(1.005);
+    box-shadow: 0 22px 60px rgba(255,40,80,0.32);
+  }
+  .final-sim-cta::before {
+    content: '';
+    position: absolute;
+    width: 280px; height: 280px;
+    top: -120px; right: -90px;
+    background: radial-gradient(circle, rgba(255,82,48,0.5), transparent 65%);
+    filter: blur(40px);
+    pointer-events: none;
+  }
+  .final-sim-cta::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(
+      45deg, transparent 0 22px, rgba(255,255,255,0.04) 22px 23px
+    );
+    pointer-events: none;
+  }
+  .final-sim-cta .fs-tag {
+    display: inline-block;
+    padding: 6px 14px;
+    background: var(--red);
+    color: var(--bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 14px rgba(255,40,80,0.4);
+  }
+  .final-sim-cta .fs-headline {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(18px, 3vw, 28px);
+    line-height: 1.1;
+    color: var(--ink);
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+  .final-sim-cta .fs-headline em {
+    font-style: normal;
+    color: var(--red);
+    text-shadow: 0 0 12px rgba(255,82,48,0.55);
+  }
+  .final-sim-cta .fs-blurb {
+    font-size: 14px;
+    color: var(--ink-dim);
+    line-height: 1.55;
+    max-width: 600px;
+    margin-bottom: 16px;
+  }
+  .final-sim-cta .fs-meta {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+    margin-bottom: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.06em;
+  }
+  .final-sim-cta .fs-meta b { color: var(--ink); font-size: 14px; font-weight: 700; }
+  .final-sim-cta .fs-meta .dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--ink-dim);
+  }
+  .final-sim-cta .fs-btn {
+    display: inline-block;
+    padding: 14px 26px;
+    background: var(--red);
+    color: var(--bg);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(255,40,80,0.36);
+    transition: transform 0.2s;
+  }
+  .final-sim-cta:hover .fs-btn { transform: translateX(4px); }
+
+  /* Grade letter on result screen */
+  .grade-letter {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 80px;
+    line-height: 1;
+    margin: 24px 0 16px;
+    color: var(--lime);
+    text-shadow: 0 0 22px var(--lime), 0 0 50px rgba(223,255,0,0.4), 4px 4px 0 var(--bg);
+    display: inline-block;
+    padding: 14px 28px;
+    border: 4px solid currentColor;
+    background: var(--bg);
+  }
+  .grade-letter.grade-A { color: #4ade80; }
+  .grade-letter.grade-B { color: var(--lime); }
+  .grade-letter.grade-C { color: var(--orange); }
+  .grade-letter.grade-D { color: #ff8a3a; }
+  .grade-letter.grade-F { color: var(--red); }
+
+  /* ---------- TIMELINE MODE (history-only new game) ---------- */
+  .timeline-stage {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 12px 0;
+  }
+  .timeline-instr {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+    text-align: center;
+    margin-bottom: 14px;
+    letter-spacing: 0.06em;
+  }
+  .tl-list {
+    display: flex; flex-direction: column;
+    gap: 10px;
+  }
+  .tl-event {
+    display: flex; align-items: center;
+    background: var(--bg-2);
+    border: 2px solid var(--bg-4);
+    border-left: 4px solid var(--lime);
+    padding: 14px 16px;
+    transition: background 0.25s, border-color 0.25s, transform 0.18s;
+  }
+  .tl-event.checked-ok    { border-left-color: #4ade80; background: rgba(74,222,128,0.08); }
+  .tl-event.checked-bad   { border-left-color: var(--red); background: rgba(255,82,48,0.08); }
+  .tl-event-label {
+    flex: 1;
+    font-size: 14.5px;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+  .tl-event-label small {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-top: 4px;
+    letter-spacing: 0.06em;
+  }
+  .tl-event-label .true-year {
+    color: var(--lime);
+    font-weight: 700;
+    margin-left: 6px;
+  }
+  .tl-controls {
+    display: flex; flex-direction: column; gap: 4px;
+    margin-left: 12px;
+  }
+  .tl-btn {
+    background: var(--bg-3);
+    color: var(--ink);
+    border: 1px solid var(--bg-4);
+    width: 36px; height: 28px;
+    font-size: 18px;
+    cursor: pointer;
+    line-height: 1;
+    border-radius: 4px;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .tl-btn:hover:not(:disabled) {
+    background: var(--lime);
+    color: var(--bg);
+    transform: scale(1.05);
+  }
+  .tl-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .tl-actions {
+    display: flex; gap: 10px;
+    margin-top: 18px;
+    justify-content: center;
+  }
+  .tl-check, .tl-reset {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    padding: 14px 22px;
+    border: 2px solid var(--lime);
+    background: var(--lime);
+    color: var(--bg);
+    cursor: pointer;
+    letter-spacing: 1px;
+    border-radius: 4px;
+    transition: transform 0.18s;
+  }
+  .tl-reset { background: transparent; color: var(--lime); }
+  .tl-check:hover, .tl-reset:hover { transform: translateY(-2px); }
+
   /* ---------- BOSS UPGRADE v10: phases, intro, banner, crits, defeat ---------- */
   body.boss-enraged .boss-hud {
     border-color: var(--red);
@@ -1823,12 +2025,31 @@
           <p id="bossDesc">Master 25 terms to unlock.</p>
           <div class="hi" id="hiBoss">HI-SCORE: 0</div>
         </div>
+        <div class="game-card" id="timelineCard" style="--accent: var(--orange);" onclick="startTimeline()" role="button" tabindex="0" aria-label="Timeline mode">
+          <div class="num">// MODE 10 · NEW</div><h3>🗓 TIMELINE</h3>
+          <p>Drag 6 events into the right order. Sequential encoding — order is a retrieval cue.</p>
+          <div class="hi" id="hiTimeline">HI-SCORE: 0</div>
+        </div>
       </div>
     </div>
     <div class="util-row">
       <button class="util-btn" onclick="openProfile()">👤 PROFILE</button>
       <button class="util-btn" onclick="openShop()">💰 SHOP</button>
       <button class="util-btn" onclick="openStats()">📊 STATS &amp; BADGES</button>
+    </div>
+
+    <!-- BOTTOM-OF-HOME: FINAL SIMULATION (history-only) -->
+    <div class="final-sim-cta" onclick="startFinalSim()" role="button" tabindex="0">
+      <div class="fs-tag">⚠ FINAL SIMULATION TEST · HISTORY ONLY</div>
+      <div class="fs-headline">Think you'd pass <em>tomorrow</em>?</div>
+      <p class="fs-blurb">25 questions · 5 sec each · ALL 102 history terms shuffled · no topic safety net. Get a grade letter at the end. This is the dress rehearsal.</p>
+      <div class="fs-meta">
+        <span><b>25</b> Qs</span><span class="dot"></span>
+        <span><b>5s</b> per Q</span><span class="dot"></span>
+        <span>NO LIVES</span><span class="dot"></span>
+        <span>GRADE LETTER</span>
+      </div>
+      <span class="fs-btn">TAKE THE SIMULATION →</span>
     </div>
   </div>
 
@@ -2065,10 +2286,27 @@
     </div>
   </div>
 
+  <!-- TIMELINE (history-only new game) -->
+  <div id="timeline" class="screen">
+    <div class="screen-header">
+      <div class="screen-title">// 🗓 TIMELINE</div>
+      <button class="back-btn" onclick="goHome()">← BACK</button>
+    </div>
+    <div class="timeline-stage">
+      <div class="timeline-instr" id="tlInstr">Order these <b>6 events</b> from earliest (top) to latest (bottom).</div>
+      <div class="tl-list" id="tlList"></div>
+      <div class="tl-actions">
+        <button class="tl-reset" onclick="resetTimeline()">↺ SHUFFLE</button>
+        <button class="tl-check" onclick="checkTimeline()">CHECK ORDER</button>
+      </div>
+    </div>
+  </div>
+
   <!-- RESULT -->
   <div id="result" class="screen">
     <div class="result">
       <div class="result-title" id="resultTitle">NICE!</div>
+      <div id="gradeWrap" hidden style="text-align:center;"><span class="grade-letter" id="gradeLetter">A</span></div>
       <div class="result-score" id="resultScore">0</div>
       <div class="result-msg" id="resultMsg">—</div>
       <div class="next-up" id="nextUp" hidden>
@@ -4079,6 +4317,187 @@ function exitBossMode() {
   }
 }
 
+// ---------- FINAL SIMULATION (per-subject finals dress rehearsal) ----------
+let finalSimMode = false;
+const FINAL_SIM_Q_COUNT = 25;
+const FINAL_SIM_Q_TIME = 5000;
+function startFinalSim() {
+  ensureAudio();
+  exitBossMode();
+  markGameTried('quiz');
+  qTerms = TERMS; // ALL terms in this subject
+  if (qTerms.length < 4) { showSnack('Need at least 4 terms for the simulation'); return; }
+  const total = Math.min(FINAL_SIM_Q_COUNT, qTerms.length);
+  qOrder = shuffle([...Array(qTerms.length).keys()]).slice(0, total);
+  qIdx = 0; qScore = 0; qStreak = 0; qBestStreak = 0; qCorrect = 0; lastCorrectPos = -1;
+  finalSimMode = true;
+  $('qTotal').textContent = qOrder.length;
+  $('quiz').querySelector('.screen-title').textContent = '// 🎯 FINAL SIMULATION';
+  $('bossHud').hidden = true; // never show boss HUD in final sim
+  document.body.classList.add('finalsim-mode');
+  Sound.click(); showScreen('quiz'); nextQuestion();
+}
+function exitFinalSim() {
+  finalSimMode = false;
+  document.body.classList.remove('finalsim-mode');
+  $('quiz').querySelector('.screen-title').textContent = '// SPEED QUIZ';
+}
+function endFinalSim() {
+  markCompleted('quiz');
+  const total = qOrder.length || 1;
+  const pct = qCorrect / total;
+  const grade = gradeFromPct(pct);
+  // Hi-score for finals sim is highest # correct
+  const cur = parseInt(localStorage.getItem('cram_finalsim_hi') || '0', 10);
+  const newHi = qCorrect > cur;
+  if (newHi) localStorage.setItem('cram_finalsim_hi', qCorrect);
+  Sound.victory();
+  bumpStat('games_played');
+  if (qCorrect === total) { unlock('boss_legend'); fireConfetti(180); }
+  else if (newHi) fireConfetti(80);
+  // Surface grade letter prominently on result screen
+  $('gradeWrap').hidden = false;
+  const gl = $('gradeLetter');
+  gl.textContent = grade.letter;
+  gl.className = 'grade-letter ' + grade.cls;
+  $('resultTitle').textContent = newHi ? '🎯 NEW SIM HI-SCORE!' : 'FINAL SIM COMPLETE';
+  $('resultScore').textContent = `${qCorrect} / ${total}`;
+  $('resultMsg').textContent = `${grade.msg} (${Math.round(pct*100)}% · best streak ${qBestStreak}🔥)`;
+  $('resultAgain').onclick = startFinalSim;
+  awardCoins({ newHi, perfect: qCorrect === total });
+  exitFinalSim();
+  showScreen('result');
+}
+function gradeFromPct(pct) {
+  if (pct >= 0.97) return { letter: 'A+', cls: 'grade-A', msg: 'Perfect or near-perfect. You\'re ready.' };
+  if (pct >= 0.93) return { letter: 'A',  cls: 'grade-A', msg: 'Excellent. You know this material.' };
+  if (pct >= 0.90) return { letter: 'A-', cls: 'grade-A', msg: 'Strong A range. One more pass and you\'re golden.' };
+  if (pct >= 0.87) return { letter: 'B+', cls: 'grade-B', msg: 'Solid. A bit more drilling and you\'re in A territory.' };
+  if (pct >= 0.83) return { letter: 'B',  cls: 'grade-B', msg: 'Good. Hit the missed-terms drill before the real test.' };
+  if (pct >= 0.80) return { letter: 'B-', cls: 'grade-B', msg: 'Borderline B. Drill weak topics now.' };
+  if (pct >= 0.77) return { letter: 'C+', cls: 'grade-C', msg: 'Passing but shaky. Need another round.' };
+  if (pct >= 0.73) return { letter: 'C',  cls: 'grade-C', msg: 'Average. Don\'t take the real test yet.' };
+  if (pct >= 0.70) return { letter: 'C-', cls: 'grade-C', msg: 'Just barely. Hard study session before finals.' };
+  if (pct >= 0.60) return { letter: 'D',  cls: 'grade-D', msg: 'Not ready. Drill the missed terms hard.' };
+  return { letter: 'F', cls: 'grade-F', msg: 'Start over with Flash Cards, then come back to me.' };
+}
+
+// ---------- TIMELINE MODE (history-only new game) ----------
+// Curated set of dated events. We sample 6 per round.
+const TIMELINE_EVENTS = [
+  { year: 1892, label: 'Homestead Strike' },
+  { year: 1911, label: 'Triangle Shirtwaist Factory Fire' },
+  { year: 1914, label: 'WWI begins (Franz Ferdinand assassinated)' },
+  { year: 1917, label: 'Russian Revolution; Russia leaves WWI' },
+  { year: 1918, label: 'WWI ends; Spanish Flu pandemic peaks' },
+  { year: 1919, label: 'Treaty of Versailles signed' },
+  { year: 1920, label: 'Prohibition begins (18th Amendment)' },
+  { year: 1920, label: '19th Amendment — women win the vote' },
+  { year: 1925, label: 'Scopes "Monkey" Trial' },
+  { year: 1929, label: 'Stock Market Crash · Great Depression starts' },
+  { year: 1933, label: 'FDR launches the New Deal · Prohibition repealed' },
+  { year: 1938, label: 'Kristallnacht — "Night of Broken Glass"' },
+  { year: 1939, label: 'WWII begins · Germany invades Poland' },
+  { year: 1941, label: 'Pearl Harbor · US enters WWII' },
+  { year: 1944, label: 'D-Day (Operation Overlord)' },
+  { year: 1945, label: 'WWII ends · atomic bombs · V-J Day' },
+];
+const TIMELINE_ROUND_SIZE = 6;
+let tlRound = [];      // events in current player ordering
+let tlChecked = false;
+function startTimeline() {
+  ensureAudio(); markGameTried('timeline');
+  // Pick 6 distinct events from the pool, shuffle them
+  const pool = [...TIMELINE_EVENTS];
+  tlRound = shuffle(pool).slice(0, TIMELINE_ROUND_SIZE);
+  // Player starts with random order
+  tlRound = shuffle(tlRound);
+  tlChecked = false;
+  Sound.click(); showScreen('timeline');
+  renderTimeline();
+}
+function renderTimeline() {
+  const list = $('tlList');
+  if (!list) return;
+  list.innerHTML = '';
+  tlRound.forEach((ev, i) => {
+    const row = document.createElement('div');
+    row.className = 'tl-event';
+    const label = document.createElement('div');
+    label.className = 'tl-event-label';
+    label.innerHTML = ev.label + (tlChecked ? `<small>Year: <span class="true-year">${ev.year}</span></small>` : '');
+    const controls = document.createElement('div');
+    controls.className = 'tl-controls';
+    const up = document.createElement('button');
+    up.className = 'tl-btn'; up.textContent = '▲'; up.title = 'Move up';
+    up.disabled = i === 0 || tlChecked;
+    up.onclick = () => moveTimeline(i, -1);
+    const down = document.createElement('button');
+    down.className = 'tl-btn'; down.textContent = '▼'; down.title = 'Move down';
+    down.disabled = i === tlRound.length - 1 || tlChecked;
+    down.onclick = () => moveTimeline(i, 1);
+    controls.appendChild(up); controls.appendChild(down);
+    row.appendChild(label); row.appendChild(controls);
+    list.appendChild(row);
+  });
+}
+function moveTimeline(idx, dir) {
+  const j = idx + dir;
+  if (j < 0 || j >= tlRound.length) return;
+  [tlRound[idx], tlRound[j]] = [tlRound[j], tlRound[idx]];
+  Sound.click();
+  renderTimeline();
+}
+function checkTimeline() {
+  tlChecked = true;
+  // Build the correct ordering (stable by index in original pool for same-year ties)
+  const truth = [...tlRound].sort((a, b) => a.year - b.year);
+  let correct = 0;
+  const list = $('tlList');
+  list.innerHTML = '';
+  tlRound.forEach((ev, i) => {
+    const isOk = ev === truth[i] || (ev.year === truth[i].year);
+    if (isOk) correct++;
+    const row = document.createElement('div');
+    row.className = 'tl-event ' + (isOk ? 'checked-ok' : 'checked-bad');
+    const label = document.createElement('div');
+    label.className = 'tl-event-label';
+    label.innerHTML = `${isOk ? '✓' : '✗'} ${ev.label}<small>Year: <span class="true-year">${ev.year}</span> · slot ${i+1} ${isOk ? 'correct' : '— wrong'}</small>`;
+    row.appendChild(label);
+    list.appendChild(row);
+  });
+  Sound.victory();
+  // Update hi-score
+  const cur = parseInt(localStorage.getItem('cram_timeline_hi') || '0', 10);
+  if (correct > cur) {
+    localStorage.setItem('cram_timeline_hi', correct);
+    const hi = $('hiTimeline'); if (hi) hi.textContent = `HI-SCORE: ${correct}/${TIMELINE_ROUND_SIZE}`;
+  }
+  bumpStat('games_played');
+  // Show summary
+  setTimeout(() => {
+    const pct = correct / TIMELINE_ROUND_SIZE;
+    const grade = gradeFromPct(pct);
+    $('resultTitle').textContent = correct === TIMELINE_ROUND_SIZE ? 'PERFECT TIMELINE!' : correct >= 4 ? 'NICE WORK' : 'KEEP DRILLING';
+    $('gradeWrap').hidden = false;
+    const gl = $('gradeLetter');
+    gl.textContent = grade.letter;
+    gl.className = 'grade-letter ' + grade.cls;
+    $('resultScore').textContent = `${correct}/${TIMELINE_ROUND_SIZE}`;
+    $('resultMsg').textContent = `${grade.msg} (${Math.round(pct*100)}% correct order)`;
+    $('resultAgain').onclick = startTimeline;
+    showScreen('result');
+    if (correct === TIMELINE_ROUND_SIZE) fireConfetti(120);
+    awardCoins({ newHi: correct > cur, perfect: correct === TIMELINE_ROUND_SIZE });
+  }, 1200);
+}
+function resetTimeline() {
+  tlChecked = false;
+  tlRound = shuffle(tlRound);
+  Sound.click();
+  renderTimeline();
+}
+
 // ---------- THEMES ----------
 const THEMES = [
   { id: 'default', name: 'DEFAULT', dots: ['#dfff00', '#ff2d95', '#00e5ff'] },
@@ -4475,7 +4894,8 @@ function nextQuestion() {
   startQTimer();
 }
 function startQTimer() {
-  const totalTime = bossMode ? (bossActive ? bossActive.qTime : 7000) : Q_TIME;
+  const totalTime = finalSimMode ? FINAL_SIM_Q_TIME
+                  : bossMode ? (bossActive ? bossActive.qTime : 7000) : Q_TIME;
   qTimeLeft = totalTime;
   const fill = $('timerFill');
   fill.style.transition = 'none'; fill.style.width = '100%'; fill.className = 'timer-fill';
@@ -4565,6 +4985,12 @@ function qTimeOut() {
   setTimeout(() => { qIdx++; nextQuestion(); }, 1200);
 }
 function endQuiz() {
+  // FINAL SIMULATION has its own result flow
+  if (finalSimMode) {
+    return endFinalSim();
+  }
+  // Hide grade letter for non-sim runs
+  const gw = $('gradeWrap'); if (gw) gw.hidden = true;
   if (!bossMode) markCompleted('quiz');
   let isNewHi;
   const wasBoss = bossMode;
