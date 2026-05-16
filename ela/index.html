@@ -818,6 +818,100 @@
     from { box-shadow: 0 0 10px #ffd700; }
     to   { box-shadow: 0 0 22px #ffd700, 0 0 40px rgba(255,215,0,0.6); }
   }
+  /* ---------- IN-GAME PERK BAR ---------- */
+  .perk-bar {
+    position: fixed;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 8px 8px 14px;
+    background: rgba(20, 8, 30, 0.92);
+    border: 2px solid var(--cyan);
+    border-radius: 999px;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.55), 0 0 24px rgba(244,201,93,0.18);
+    z-index: 90;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transition: transform 0.35s cubic-bezier(0.2, 1.2, 0.3, 1), opacity 0.3s;
+    opacity: 0;
+    pointer-events: none;
+    max-width: calc(100% - 32px);
+    flex-wrap: nowrap;
+  }
+  .perk-bar.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .perk-bar .perk-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    margin-right: 2px;
+  }
+  .perk-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(244, 201, 93, 0.18);
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .perk-chip .icon { font-size: 14px; }
+  .perk-chip .count {
+    color: var(--cyan);
+    font-weight: 700;
+    min-width: 14px;
+    text-align: center;
+  }
+  .perk-chip.empty { opacity: 0.45; }
+  .perk-chip.empty .count { color: var(--ink-dim); }
+  .perk-chip.flash {
+    animation: perk-flash 0.5s ease;
+  }
+  @keyframes perk-flash {
+    0%   { background: rgba(244,201,93,0.5); transform: scale(1); }
+    50%  { background: rgba(244,201,93,0.8); transform: scale(1.12); }
+    100% { background: rgba(255,255,255,0.05); transform: scale(1); }
+  }
+  .perk-coin-chip {
+    color: var(--pink);
+    border-color: rgba(244, 201, 93, 0.32);
+  }
+  .perk-coin-chip .count { color: var(--pink); }
+  .perk-shop-btn {
+    padding: 7px 14px;
+    background: var(--cyan);
+    color: var(--bg);
+    border: none;
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    text-transform: uppercase;
+    box-shadow: 0 4px 14px rgba(244,201,93,0.36);
+    transition: transform 0.15s, box-shadow 0.15s;
+    margin-left: 2px;
+  }
+  .perk-shop-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px rgba(244,201,93,0.5);
+  }
+  @media (max-width: 540px) {
+    .perk-bar { gap: 5px; padding: 6px 6px 6px 10px; }
+    .perk-bar .perk-label { display: none; }
+    .perk-chip { padding: 4px 8px; font-size: 11.5px; }
+    .perk-shop-btn { font-size: 10px; padding: 6px 10px; }
+  }
+
   /* Wrong-answer teaching modal — pauses gameplay so Corbin actually learns */
   .wrong-modal {
     position: fixed; inset: 0;
@@ -2285,6 +2379,15 @@
     <div class="crit-flash" id="critFlash" aria-hidden="true">
       <div class="crit-text">⚡ CRITICAL!</div>
     </div>
+    <!-- In-game perk bar — Corbin's current consumables + a shortcut to buy more -->
+    <div class="perk-bar" id="perkBar" aria-label="Active perks">
+      <span class="perk-label">PERKS</span>
+      <div class="perk-chip" id="perkLife" title="Extra lives (banked for Survival/Boss)"><span class="icon">❤️</span><span class="count">0</span></div>
+      <div class="perk-chip" id="perkShield" title="Streak shields"><span class="icon">🛡️</span><span class="count">0</span></div>
+      <div class="perk-chip" id="perkHint" title="Hints for Type It"><span class="icon">💡</span><span class="count">0</span></div>
+      <div class="perk-chip perk-coin-chip" id="perkCoins" title="Coins"><span class="icon">💰</span><span class="count">0</span></div>
+      <button class="perk-shop-btn" onclick="openShop()">+ BUY</button>
+    </div>
     <!-- Wrong-answer teaching modal — pauses the game so Corbin sees the right answer -->
     <div class="wrong-modal" id="wrongModal" aria-hidden="true">
       <div class="wm-card">
@@ -3028,6 +3131,37 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $(id).classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  renderPerkBar(id);
+}
+// ---------- IN-GAME PERK BAR ----------
+function renderPerkBar(currentScreen) {
+  const bar = $('perkBar');
+  if (!bar) return;
+  const hideOn = ['home', 'result'];
+  const screenId = currentScreen || (document.querySelector('.screen.active') ? document.querySelector('.screen.active').id : 'home');
+  if (hideOn.includes(screenId)) {
+    bar.classList.remove('show');
+    return;
+  }
+  const inv = getInventory();
+  const setChip = (id, count) => {
+    const el = $(id);
+    if (!el) return;
+    const c = el.querySelector('.count');
+    const prev = parseInt(c.textContent, 10);
+    c.textContent = count;
+    el.classList.toggle('empty', count === 0);
+    if (Number.isFinite(prev) && prev !== count) {
+      el.classList.remove('flash');
+      void el.offsetWidth;
+      el.classList.add('flash');
+    }
+  };
+  setChip('perkLife',   inv.extra_life     || 0);
+  setChip('perkShield', inv.streak_shield  || 0);
+  setChip('perkHint',   inv.hint           || 0);
+  setChip('perkCoins',  getCoins());
+  bar.classList.add('show');
 }
 function goHome() {
   stopAllTimers();
@@ -3080,9 +3214,11 @@ function spendCoins(n) {
 }
 function renderCoinChip(bump) {
   const el = $('coinChip');
-  if (!el) return;
-  el.textContent = `💰 ${getCoins()}`;
-  if (bump) { el.classList.remove('bumped'); void el.offsetWidth; el.classList.add('bumped'); }
+  if (el) {
+    el.textContent = `💰 ${getCoins()}`;
+    if (bump) { el.classList.remove('bumped'); void el.offsetWidth; el.classList.add('bumped'); }
+  }
+  if (typeof renderPerkBar === 'function') renderPerkBar();
 }
 function getInventory() {
   try { return JSON.parse(localStorage.getItem('cram_inv') || '{}'); } catch(e) { return {}; }
@@ -3095,6 +3231,7 @@ function bumpInventory(key, by = 1) {
   const inv = getInventory();
   inv[key] = Math.min((inv[key] || 0) + by, 9999);
   setInventory(inv);
+  if (typeof renderPerkBar === 'function') renderPerkBar();
   return inv[key];
 }
 function useInventory(key) {
@@ -3103,6 +3240,7 @@ function useInventory(key) {
   inv[key]--;
   if (inv[key] < 0) inv[key] = 0;
   setInventory(inv);
+  if (typeof renderPerkBar === 'function') renderPerkBar();
   return true;
 }
 // Award coins after a game ends. base 1; +2 hi-score; +2 perfect/clean
