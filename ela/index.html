@@ -454,159 +454,402 @@
   .grade-letter.grade-F { color: var(--red); }
 
   /* ===========================================================
-     ELA HOME-SCREEN AESTHETIC: vintage theatre playbill overlay
+     ELA HOME-SCREEN AESTHETIC v2: full vintage theatre playbill
      Targets only the HOME screen, leaving game screens as v10 arcade
      =========================================================== */
-  body { font-family: 'Outfit', 'EB Garamond', serif; }
+  body { font-family: 'EB Garamond', Georgia, serif; }
+
+  /* Plum velvet stage backdrop with painted-on parchment vignette */
   #home {
     background:
-      radial-gradient(circle at 20% 10%, rgba(244,201,93,0.10), transparent 60%),
-      radial-gradient(circle at 80% 90%, rgba(215,123,255,0.10), transparent 60%),
-      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
-    padding-bottom: 24px;
+      radial-gradient(ellipse 1200px 600px at 50% 0%, rgba(244,201,93,0.18) 0%, transparent 55%),
+      radial-gradient(ellipse 800px 600px at 50% 100%, rgba(215,123,255,0.12) 0%, transparent 60%),
+      linear-gradient(180deg, #1a0d28 0%, #0e0719 50%, #1a0d28 100%);
+    padding-bottom: 36px;
+    position: relative;
+    overflow-x: clip;
   }
+  /* Velvet curtain drape across the top of the home view */
   #home::before {
     content: '';
-    position: fixed; inset: 0;
-    background-image: repeating-linear-gradient(
-      90deg, transparent 0 2px, rgba(244,201,93,0.025) 2px 3px
-    );
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    background:
+      linear-gradient(180deg, #4a0f1a 0%, #6b1226 35%, #3a0a17 100%),
+      repeating-linear-gradient(90deg,
+        rgba(0,0,0,0.18) 0 6px,
+        rgba(255,255,255,0.06) 6px 9px,
+        rgba(0,0,0,0.18) 9px 14px,
+        transparent 14px 22px);
+    background-blend-mode: multiply, normal;
+    border-bottom: 3px solid #c89a3a;
+    box-shadow: 0 6px 22px rgba(0,0,0,0.6), inset 0 -8px 14px rgba(0,0,0,0.4);
     pointer-events: none;
-    z-index: 0;
+    z-index: 1;
+  }
+  /* Tassel-fringe ornament under the curtain */
+  #home::after {
+    content: '';
+    position: absolute;
+    top: 56px; left: 0; right: 0;
+    height: 16px;
+    background:
+      radial-gradient(circle at 12px 0, #c89a3a 0 4px, transparent 5px),
+      linear-gradient(180deg, rgba(200,154,58,0.7), transparent);
+    background-size: 24px 16px, 100% 100%;
+    background-repeat: repeat-x, no-repeat;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Hero — make it look like a proper marquee announcement */
+  #home .hero {
+    position: relative;
+    padding-top: 86px !important;
+    z-index: 2;
+  }
+  #home .hero::before {
+    content: '◆  TONIGHT'S PERFORMANCE  ◆';
+    display: block;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 13px;
+    letter-spacing: 0.38em;
+    color: #c89a3a;
+    text-align: center;
+    margin-bottom: 14px;
+    text-transform: uppercase;
   }
   #home .hero h1 {
     font-family: 'Playfair Display', 'EB Garamond', Georgia, serif !important;
     font-style: italic !important;
     font-weight: 900 !important;
     text-transform: none !important;
-    letter-spacing: -0.01em !important;
+    letter-spacing: -0.015em !important;
+    text-shadow:
+      0 2px 0 rgba(0,0,0,0.4),
+      0 6px 28px rgba(0,0,0,0.5) !important;
+  }
+  #home .hero h1::first-letter {
+    color: #c89a3a;
+    text-shadow:
+      0 0 18px rgba(200,154,58,0.6),
+      2px 2px 0 rgba(0,0,0,0.5);
   }
   #home .hero h1 .accent {
-    color: var(--cyan) !important;
-    text-shadow: 0 0 18px rgba(244,201,93,0.5) !important;
+    color: #f4c95d !important;
+    text-shadow: 0 0 18px rgba(244,201,93,0.55) !important;
   }
   #home .hero h1 .pink {
-    color: var(--pink) !important;
-    text-shadow: 0 0 18px rgba(215,123,255,0.5) !important;
+    color: #d77bff !important;
+    text-shadow: 0 0 18px rgba(215,123,255,0.55) !important;
   }
   #home .hero p {
     font-family: 'EB Garamond', Georgia, serif !important;
     font-style: italic !important;
-    color: var(--ink-dim) !important;
+    color: #b7a1c8 !important;
+    font-size: 17px !important;
+    line-height: 1.55 !important;
+    position: relative;
+    padding: 0 12px;
   }
-  /* Playbill divider above topic pills */
+  /* Ornamental flourishes around the tagline */
+  #home .hero p::before { content: '❦ '; color: #c89a3a; opacity: 0.7; }
+  #home .hero p::after  { content: ' ❦'; color: #c89a3a; opacity: 0.7; }
+
+  /* Hero greet → actor's stage tag */
+  #home .hero-greet {
+    background: linear-gradient(180deg, #2a1640 0%, #1a0d28 100%) !important;
+    border: 1.5px solid #c89a3a !important;
+    border-radius: 4px !important;
+    font-family: 'EB Garamond', Georgia, serif !important;
+    font-style: italic !important;
+    color: #f4c95d !important;
+    padding: 8px 16px !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5), 0 0 0 1px rgba(244,201,93,0.18) inset !important;
+  }
+
+  /* Gold-leaf divider before the topic-pill section */
   #home .topic-pills {
     position: relative;
-    padding-top: 18px;
+    padding: 28px 0 6px;
+    margin-top: 22px;
   }
   #home .topic-pills::before {
-    content: 'ACT I — TOPICS';
+    content: '✦  ACT I · TOPICS  ✦';
     position: absolute;
     top: 0; left: 50%;
     transform: translateX(-50%);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.32em;
-    color: var(--cyan);
-    text-shadow: 0 0 8px rgba(244,201,93,0.4);
+    font-family: 'Playfair Display', 'EB Garamond', Georgia, serif;
+    font-style: italic;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.22em;
+    color: #f4c95d;
+    text-shadow: 0 0 14px rgba(244,201,93,0.4);
+    padding: 0 14px;
+    background: #1a0d28;
   }
-  /* Stylize topic pills as ticket-style elements */
+  #home .topic-pills::after {
+    content: '';
+    position: absolute;
+    top: 13px; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #c89a3a 20%, #c89a3a 80%, transparent);
+    opacity: 0.5;
+    z-index: -1;
+  }
+
+  /* Topic pills become physical theatre tickets — radial cutouts on sides */
   #home .topic-pill {
-    border-radius: 4px !important;
-    border: 1px solid rgba(244,201,93,0.32) !important;
-    background: rgba(255,255,255,0.02) !important;
+    border: 1.5px solid #c89a3a !important;
+    background: linear-gradient(180deg, #2a1640 0%, #1f0f30 100%) !important;
     font-family: 'EB Garamond', Georgia, serif !important;
     font-style: italic !important;
-  }
-  #home .topic-pill.active {
-    border-color: var(--cyan) !important;
-    background: rgba(244,201,93,0.10) !important;
-  }
-  /* Game cards become playbills */
-  #home .games-group-label {
-    font-family: 'Playfair Display', 'EB Garamond', Georgia, serif !important;
-    font-style: italic;
-    font-weight: 700;
-    color: var(--cyan) !important;
-    letter-spacing: 0.08em;
-    font-size: 13px;
-    text-transform: uppercase;
-  }
-  #home .games-group-label::before { content: '— '; opacity: 0.6; }
-  #home .games-group-label::after  { content: ' —'; opacity: 0.6; }
-  #home .game-card {
+    font-weight: 600 !important;
+    color: #d4c4b0 !important;
     border-radius: 6px !important;
-    border: 2px solid rgba(244,201,93,0.28) !important;
-    background:
-      linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%),
-      var(--bg-2) !important;
+    padding: 8px 18px !important;
+    position: relative !important;
     box-shadow:
       0 0 0 1px rgba(244,201,93,0.18) inset,
-      6px 6px 0 rgba(244,201,93,0.10),
-      0 12px 28px rgba(0,0,0,0.4) !important;
-    position: relative !important;
+      0 4px 10px rgba(0,0,0,0.45),
+      -8px 0 0 -6px #1a0d28,
+      8px 0 0 -6px #1a0d28;
+    -webkit-mask:
+      radial-gradient(circle at left center, transparent 5px, #000 5.5px) left,
+      radial-gradient(circle at right center, transparent 5px, #000 5.5px) right;
+    -webkit-mask-size: 51% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask:
+      radial-gradient(circle at left center, transparent 5px, #000 5.5px) left,
+      radial-gradient(circle at right center, transparent 5px, #000 5.5px) right;
+    mask-size: 51% 100%;
+    mask-repeat: no-repeat;
   }
+  #home .topic-pill:hover {
+    transform: translateY(-2px) !important;
+    color: #f4c95d !important;
+  }
+  #home .topic-pill.active {
+    color: #1a0d28 !important;
+    background: linear-gradient(180deg, #f4c95d 0%, #c89a3a 100%) !important;
+    font-weight: 800 !important;
+  }
+
+  /* Game cards become playbills with corner flourishes + double-border */
+  #home .games-group {
+    position: relative;
+    padding-top: 36px;
+    margin-top: 16px;
+  }
+  #home .games-group-label {
+    font-family: 'Playfair Display', 'EB Garamond', Georgia, serif !important;
+    font-style: italic !important;
+    font-weight: 800 !important;
+    color: #f4c95d !important;
+    letter-spacing: 0.16em !important;
+    font-size: 15px !important;
+    text-align: center !important;
+    text-transform: uppercase !important;
+    padding: 0 18px !important;
+    background: #1a0d28 !important;
+    position: relative !important;
+    z-index: 2;
+    display: inline-block;
+    left: 50%;
+    transform: translateX(-50%);
+    text-shadow: 0 0 10px rgba(244,201,93,0.35);
+  }
+  #home .games-group::before {
+    content: '';
+    position: absolute;
+    top: 47px; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #c89a3a 15%, #c89a3a 85%, transparent);
+    opacity: 0.45;
+    z-index: 0;
+  }
+  #home .games-group-label::before,
+  #home .games-group-label::after { content: ''; }
+  #home .games-group.warmup     .games-group-label::before { content: 'PROLOGUE · ' !important; opacity: 0.85; color: #c89a3a !important; }
+  #home .games-group.testself   .games-group-label::before { content: 'ACT II · ' !important;   opacity: 0.85; color: #c89a3a !important; }
+  #home .games-group.challenge  .games-group-label::before { content: 'ACT III · ' !important;  opacity: 0.85; color: #c89a3a !important; }
+  #home .games-group.boss       .games-group-label::before { content: 'FINALE · ' !important;   opacity: 0.85; color: #c89a3a !important; }
+  #home .games-group-label::after { content: '' !important; }
+
+  /* The playbill itself */
+  #home .game-card {
+    border-radius: 8px !important;
+    border: 2px solid #c89a3a !important;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(244,201,93,0.06) 0%, transparent 50%),
+      linear-gradient(180deg, #271238 0%, #1a0d28 100%) !important;
+    box-shadow:
+      0 0 0 1px rgba(244,201,93,0.25) inset,
+      0 8px 0 -4px rgba(0,0,0,0.6),
+      0 14px 28px rgba(0,0,0,0.5),
+      0 0 0 6px #1a0d28 inset !important;
+    position: relative !important;
+    padding: 28px 22px 22px !important;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.4), box-shadow 0.3s !important;
+  }
+  /* Inner border ornament (double-line effect) */
   #home .game-card::after {
     content: '';
     position: absolute;
-    top: 8px; left: 8px; right: 8px; bottom: 8px;
-    border: 1px solid rgba(244,201,93,0.18);
+    top: 10px; left: 10px; right: 10px; bottom: 10px;
+    border: 1px solid rgba(244,201,93,0.32);
     pointer-events: none;
-    border-radius: 3px;
+    border-radius: 4px;
+  }
+  /* Corner flourishes */
+  #home .game-card::before {
+    content: '';
+    position: absolute;
+    top: 6px; left: 6px;
+    width: 24px; height: 24px;
+    background:
+      linear-gradient(135deg, #c89a3a 0 2px, transparent 2px),
+      linear-gradient(45deg, #c89a3a 0 2px, transparent 2px);
+    background-position: 0 0, 0 0;
+    background-size: 24px 2px, 2px 24px;
+    background-repeat: no-repeat;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  /* Stage spotlight effect on hover */
+  #home .game-card:not(.locked):hover {
+    transform: translateY(-4px) !important;
+    box-shadow:
+      0 0 0 1px rgba(244,201,93,0.5) inset,
+      0 12px 0 -4px rgba(0,0,0,0.7),
+      0 24px 50px rgba(0,0,0,0.65),
+      0 0 0 6px #1a0d28 inset,
+      0 0 60px rgba(244,201,93,0.18) !important;
   }
   #home .game-card .num {
-    font-family: 'JetBrains Mono', monospace !important;
-    color: var(--cyan) !important;
-    letter-spacing: 0.16em !important;
+    font-family: 'EB Garamond', Georgia, serif !important;
+    font-style: italic !important;
+    color: #c89a3a !important;
+    letter-spacing: 0.04em !important;
+    font-size: 11.5px !important;
+    text-transform: uppercase !important;
+    padding-bottom: 8px !important;
+    border-bottom: 1px solid rgba(244,201,93,0.18) !important;
+    margin-bottom: 10px !important;
   }
   #home .game-card h3 {
     font-family: 'Playfair Display', 'EB Garamond', Georgia, serif !important;
     font-style: italic !important;
     font-weight: 800 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    color: #fbeed6 !important;
+    font-size: clamp(20px, 2.6vw, 26px) !important;
+    margin-bottom: 8px !important;
+    text-shadow: 0 2px 0 rgba(0,0,0,0.4) !important;
   }
   #home .game-card p {
     font-family: 'EB Garamond', Georgia, serif !important;
-    font-style: italic;
-    font-size: 14.5px !important;
-    line-height: 1.5 !important;
+    font-style: italic !important;
+    font-size: 15px !important;
+    line-height: 1.55 !important;
+    color: #b7a1c8 !important;
   }
   #home .game-card .hi {
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: 10.5px !important;
-    letter-spacing: 0.12em !important;
-  }
-  #home .game-card:not(.locked):hover {
-    transform: translate(-2px, -2px) !important;
-    box-shadow:
-      0 0 0 1px rgba(244,201,93,0.35) inset,
-      8px 8px 0 rgba(244,201,93,0.18),
-      0 18px 40px rgba(0,0,0,0.55) !important;
-  }
-  /* Playbill stamps over groups */
-  #home .games-group {
-    position: relative;
-    padding-top: 22px;
-  }
-  #home .games-group.warmup     .games-group-label::before { content: 'PROLOGUE — '; opacity: 0.8; }
-  #home .games-group.testself   .games-group-label::before { content: 'ACT II — '; opacity: 0.8; }
-  #home .games-group.challenge  .games-group-label::before { content: 'ACT III — '; opacity: 0.8; }
-  #home .games-group.boss       .games-group-label::before { content: 'ACT V — '; opacity: 0.8; }
-  #home .games-group .games-group-label::after { content: '' !important; }
-  /* Hero brand reinforcement */
-  #home .hero-greet {
-    background: rgba(244,201,93,0.08) !important;
-    border-color: rgba(244,201,93,0.3) !important;
     font-family: 'EB Garamond', Georgia, serif !important;
-    font-style: italic;
+    font-style: italic !important;
+    font-size: 11.5px !important;
+    letter-spacing: 0.04em !important;
+    color: #c89a3a !important;
+    text-transform: none !important;
+    border-top: 1px solid rgba(244,201,93,0.18) !important;
+    padding-top: 8px !important;
+    margin-top: 10px !important;
   }
-  /* Topbar logo gets a slight serif twist on ELA */
+  #home .game-card .hi::before { content: '— '; opacity: 0.6; }
+
+  /* Locked game cards still readable but clearly off */
+  #home .game-card.locked-mode {
+    opacity: 0.5 !important;
+    filter: grayscale(0.6);
+  }
+
+  /* The util row buttons */
+  #home .util-btn {
+    background: linear-gradient(180deg, #2a1640 0%, #1a0d28 100%) !important;
+    border: 1.5px solid #c89a3a !important;
+    color: #f4c95d !important;
+    font-family: 'EB Garamond', Georgia, serif !important;
+    font-style: italic !important;
+    letter-spacing: 0.06em !important;
+  }
+  #home .util-btn:hover {
+    background: linear-gradient(180deg, #3a1f56 0%, #251439 100%) !important;
+    box-shadow: 0 0 16px rgba(244,201,93,0.25) !important;
+  }
+
+  /* Topbar logo serif twist */
   .logo {
     font-family: 'Playfair Display', 'EB Garamond', Georgia, serif !important;
     font-style: italic !important;
     font-weight: 800 !important;
-    letter-spacing: 0 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  /* Stat / daily / coin chips on topbar in ELA palette */
+  .coin-chip, .study-timer, .daily-badge {
+    border-color: rgba(244,201,93,0.32) !important;
+  }
+
+  /* Finals card & daily challenge cards in ELA */
+  #home .finals-card,
+  #home .daily-challenge {
+    border-color: rgba(244,201,93,0.4) !important;
+    background: linear-gradient(180deg, #271238 0%, #1a0d28 100%) !important;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.5), 0 0 0 1px rgba(244,201,93,0.18) inset !important;
+  }
+
+  /* Final Simulation CTA gets a refined theatrical treatment */
+  #home .final-sim-cta {
+    border-color: #c89a3a !important;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(244,201,93,0.10) 0%, transparent 60%),
+      linear-gradient(135deg, #3a1a4d 0%, #1a0d28 100%) !important;
+    border-radius: 8px !important;
+    box-shadow:
+      0 0 0 1px rgba(244,201,93,0.25) inset,
+      0 16px 40px rgba(0,0,0,0.55),
+      0 0 60px rgba(215,123,255,0.16) !important;
+  }
+  #home .final-sim-cta .fs-headline {
+    font-family: 'Playfair Display', 'EB Garamond', Georgia, serif !important;
+    font-style: italic !important;
+    text-transform: none !important;
+    letter-spacing: -0.01em !important;
+  }
+  #home .final-sim-cta .fs-headline em {
+    color: #f4c95d !important;
+  }
+  #home .final-sim-cta .fs-blurb {
+    font-family: 'EB Garamond', Georgia, serif !important;
+    font-style: italic !important;
+    font-size: 15.5px !important;
+    line-height: 1.6 !important;
+  }
+  #home .final-sim-cta .fs-tag {
+    background: #c89a3a !important;
+    color: #1a0d28 !important;
+  }
+  #home .final-sim-cta .fs-btn {
+    background: linear-gradient(180deg, #f4c95d 0%, #c89a3a 100%) !important;
+    color: #1a0d28 !important;
+    font-family: 'Playfair Display', 'EB Garamond', Georgia, serif !important;
+    font-style: italic !important;
+    text-transform: uppercase !important;
   }
 
   /* ---------- BOSS UPGRADE v10: phases, intro, banner, crits, defeat ---------- */

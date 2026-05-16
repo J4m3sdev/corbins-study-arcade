@@ -317,11 +317,64 @@
 
   .cabinet.locked {
     pointer-events: none;
-    opacity: 0.55;
+    opacity: 0.62;
+    filter: grayscale(0.95);
+    position: relative;
   }
-  .cabinet.locked .cab-marquee { color: var(--ink-dim); }
-  .cabinet.locked .cab-enter   { color: var(--ink-dim); }
-  .cabinet.locked .cab-screen  { filter: grayscale(0.5); }
+  .cabinet.locked .cab-marquee {
+    background: #2a2a2a !important;
+    color: #888 !important;
+    border-bottom-color: #444 !important;
+  }
+  .cabinet.locked .cab-marquee::before,
+  .cabinet.locked .cab-marquee::after {
+    background: #555 !important;
+    box-shadow: none !important;
+    animation: none !important;
+  }
+  .cabinet.locked .cab-screen {
+    background: linear-gradient(165deg, #6a6a6a 0%, #3a3a3a 100%) !important;
+    color: #aaa !important;
+  }
+  .cabinet.locked .cab-screen::before {
+    background: radial-gradient(circle, rgba(255,255,255,0.12), transparent 70%) !important;
+    filter: blur(20px);
+  }
+  .cabinet.locked .cab-title,
+  .cabinet.locked .cab-sub,
+  .cabinet.locked .cab-blurb {
+    color: #ddd !important;
+    text-shadow: none !important;
+  }
+  .cabinet.locked .cab-foot {
+    background: #1a1a1a !important;
+    color: #888 !important;
+  }
+  .cabinet.locked .cab-stats { color: #777 !important; }
+  .cabinet.locked .cab-enter {
+    color: #ff7a7a !important;
+    text-shadow: 0 0 6px rgba(255,80,80,0.4) !important;
+  }
+  .cabinet.locked::after {
+    content: 'NOT INSTALLED';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-14deg);
+    background: linear-gradient(135deg, #ff3a5b, #c5142e);
+    color: #fff;
+    padding: 10px 22px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    border: 4px solid var(--line);
+    box-shadow: 6px 6px 0 var(--line), 0 0 0 2px #fff inset;
+    z-index: 10;
+    pointer-events: none;
+    text-transform: uppercase;
+    width: auto; height: auto;
+    border-radius: 0;
+    filter: none;
+  }
 
   /* ===== "How to play" strip ===== */
   .howto {
