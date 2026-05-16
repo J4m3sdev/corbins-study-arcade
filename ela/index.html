@@ -1287,6 +1287,22 @@
     transition: transform 0.15s, box-shadow 0.15s;
   }
   .spin-modal .sw-btn.paid { background: var(--pink); }
+  .spin-modal .sw-btn.token {
+    background: linear-gradient(135deg, var(--cyan), var(--green));
+    color: var(--bg);
+    box-shadow: 0 6px 18px rgba(244,201,93,0.32);
+    position: relative;
+  }
+  .spin-modal .sw-btn.token:not(:disabled)::before {
+    content: '';
+    position: absolute;
+    top: -2px; right: -2px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+    animation: bulb 1.2s ease-in-out infinite;
+  }
   .spin-modal .sw-btn.close { background: var(--bg-4); color: var(--ink); }
   .spin-modal .sw-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .spin-modal .sw-btn:hover:not(:disabled) {
@@ -3229,8 +3245,9 @@
     <div class="sw-status" id="swStatus">Free spin ready · 0/5 paid spins used</div>
     <div class="sw-result" id="swResult">Hit SPIN to test your luck.</div>
     <div class="sw-actions">
-      <button class="sw-btn" id="swFreeBtn" onclick="doSpin(false)">FREE SPIN</button>
-      <button class="sw-btn paid" id="swPaidBtn" onclick="doSpin(true)">PAY 8💰</button>
+      <button class="sw-btn" id="swFreeBtn" onclick="doSpin('free')">FREE SPIN</button>
+      <button class="sw-btn paid" id="swPaidBtn" onclick="doSpin('paid')">PAY 8💰</button>
+      <button class="sw-btn token" id="swTokenBtn" onclick="doSpin('token')">USE TOKEN</button>
       <button class="sw-btn close" onclick="closeSpinWheel()">CLOSE</button>
     </div>
   </div>
@@ -3819,6 +3836,7 @@ const SHOP_ITEMS = [
   { id: 'streak_shield', icon: '🛡️', name: 'STREAK SHIELD', desc: 'Auto-protects your daily streak through one missed day.',     cost: 15, stack: true },
   { id: 'hint_pack',     icon: '💡', name: 'HINT PACK x3',  desc: 'Three free hints for Type It. Cost no points to use.',         cost: 5,  stack: true, grants: { hint: 3 } },
   { id: 'mystery_crate', icon: '🎁', name: 'MYSTERY CRATE', desc: 'Roll for coins, hints, lives, shields, or a 1% JACKPOT. Max 5/day.', cost: 8,  stack: false },
+  { id: 'spin_token',    icon: '🎰', name: 'SPIN TOKEN',    desc: 'One extra Wheel spin — bypasses the daily cap. Bank as many as you want.', cost: 12, stack: true },
 ];
 
 // Mystery Crate daily counter — prevents the infinite-coin grind exploit
@@ -4800,10 +4818,12 @@ function _weightedPickOutcome() {
 }
 function renderSpinStatus() {
   const log = getSpinDaily();
+  const inv = getInventory();
+  const tokens = inv.spin_token || 0;
   const statusEl = $('swStatus');
   if (statusEl) {
     const freeTxt = log.freeUsed ? 'used' : 'ready';
-    statusEl.textContent = `Free spin ${freeTxt} · ${log.paidCount}/${SPIN_DAILY_PAID_CAP} paid spins used today`;
+    statusEl.textContent = `Free ${freeTxt} · ${log.paidCount}/${SPIN_DAILY_PAID_CAP} paid · ${tokens} 🎰 token${tokens === 1 ? '' : 's'}`;
   }
   const freeBtn = $('swFreeBtn');
   if (freeBtn) {
@@ -4817,8 +4837,13 @@ function renderSpinStatus() {
     paidBtn.disabled = noCoin || capped || spinInProgress;
     paidBtn.textContent = capped ? 'PAID CAP HIT' : noCoin ? `NEED ${SPIN_PAID_COST}💰` : `PAY ${SPIN_PAID_COST}💰`;
   }
+  const tokenBtn = $('swTokenBtn');
+  if (tokenBtn) {
+    tokenBtn.disabled = tokens <= 0 || spinInProgress;
+    tokenBtn.textContent = tokens > 0 ? `USE TOKEN (${tokens})` : 'NO TOKENS';
+  }
   const spinBtn = $('spinBtn');
-  if (spinBtn) spinBtn.classList.toggle('has-free', !log.freeUsed);
+  if (spinBtn) spinBtn.classList.toggle('has-free', !log.freeUsed || tokens > 0);
 }
 function openSpinWheel() {
   Sound.click();
@@ -4838,15 +4863,25 @@ function closeSpinWheel() {
   Sound.click();
   renderSpinStatus();
 }
-function doSpin(isPaid) {
+function doSpin(mode) {
+  // Back-compat: legacy boolean signature (false=free, true=paid) still works
+  if (mode === false) mode = 'free';
+  else if (mode === true) mode = 'paid';
+  if (!mode) mode = 'free';
   if (spinInProgress) return;
   const log = getSpinDaily();
-  if (!isPaid && log.freeUsed) { showSnack('Free spin used. Pay 8💰 or come back tomorrow.'); return; }
-  if (isPaid && log.paidCount >= SPIN_DAILY_PAID_CAP) { showSnack(`Daily spin cap (${SPIN_DAILY_PAID_CAP}/day). Back tomorrow.`); return; }
-  if (isPaid && !spendCoins(SPIN_PAID_COST)) { showSnack(`Need ${SPIN_PAID_COST} coins to spin`); return; }
 
-  if (isPaid) log.paidCount++;
-  else log.freeUsed = true;
+  if (mode === 'free' && log.freeUsed) { showSnack('Free spin used. Pay 8💰, use a token, or come back tomorrow.'); return; }
+  if (mode === 'paid') {
+    if (log.paidCount >= SPIN_DAILY_PAID_CAP) { showSnack(`Daily paid spin cap (${SPIN_DAILY_PAID_CAP}/day) — use a token to keep spinning.`); return; }
+    if (!spendCoins(SPIN_PAID_COST)) { showSnack(`Need ${SPIN_PAID_COST} coins to spin`); return; }
+  }
+  if (mode === 'token') {
+    if (!useInventory('spin_token')) { showSnack('No spin tokens — buy one in the shop'); return; }
+  }
+
+  if (mode === 'paid') log.paidCount++;
+  else if (mode === 'free') log.freeUsed = true;
   saveSpinDaily(log);
 
   const outcome = _weightedPickOutcome();
