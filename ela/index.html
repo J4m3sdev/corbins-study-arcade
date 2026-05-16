@@ -4705,6 +4705,7 @@ function endFinalSim() {
   $('resultMsg').textContent = `${grade.msg} (${Math.round(pct*100)}% · best streak ${qBestStreak}🔥)`;
   $('resultAgain').onclick = startFinalSim;
   awardCoins({ newHi, perfect: qCorrect === total });
+  hideNextUp();
   exitFinalSim();
   showScreen('result');
 }
@@ -4752,6 +4753,7 @@ function endQuoteHunt() {
   $('resultAgain').onclick = startQuoteHunt;
   const hi = $('hiQuote'); if (hi) hi.textContent = `HI-SCORE: ${Math.max(qScore, cur)}`;
   awardCoins({ newHi, perfect });
+  hideNextUp();
   exitQuoteHunt();
   showScreen('result');
 }

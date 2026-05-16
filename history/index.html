@@ -4678,6 +4678,7 @@ function endFinalSim() {
   $('resultMsg').textContent = `${grade.msg} (${Math.round(pct*100)}% · best streak ${qBestStreak}🔥)`;
   $('resultAgain').onclick = startFinalSim;
   awardCoins({ newHi, perfect: qCorrect === total });
+  hideNextUp();
   exitFinalSim();
   showScreen('result');
 }
@@ -4799,6 +4800,7 @@ function checkTimeline() {
     $('resultScore').textContent = `${correct}/${TIMELINE_ROUND_SIZE}`;
     $('resultMsg').textContent = `${grade.msg} (${Math.round(pct*100)}% correct order)`;
     $('resultAgain').onclick = startTimeline;
+    hideNextUp();
     showScreen('result');
     if (correct === TIMELINE_ROUND_SIZE) fireConfetti(120);
     awardCoins({ newHi: correct > cur, perfect: correct === TIMELINE_ROUND_SIZE });
