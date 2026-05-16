@@ -2539,7 +2539,7 @@
     </div>
 
     <!-- BOTTOM-OF-HOME: FINAL SIMULATION (ELA-only) -->
-    <div class="final-sim-cta" onclick="startFinalSim()" role="button" tabindex="0">
+    <div class="final-sim-cta" onclick="startFinalSim()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startFinalSim();}" role="button" tabindex="0" aria-label="Start the Final Simulation Test for ELA — 25 questions, 12 seconds each, no lives">
       <div class="fs-tag">🎭 FINAL SIMULATION · ELA ONLY</div>
       <div class="fs-headline">Take the <em>dress rehearsal</em>.</div>
       <p class="fs-blurb">25 questions · 12 sec each · ALL 76 ELA terms shuffled · Literary Terms, Much Ado, Crusoe, Themes together. Get a grade letter at the end. This is how it'll feel tomorrow.</p>
@@ -3235,6 +3235,7 @@ const Sound = {
   getTracks() { return Object.entries(this._tracks).map(([id, t]) => ({ id, name: t.name })); },
   startMusic() {
     if (!this.enabled || !this.ctx || this.musicPlaying) return;
+    if (this.musicInterval) { clearInterval(this.musicInterval); this.musicInterval = null; }
     const track = this._tracks[this.trackId] || this._tracks.arcade;
     this.musicPlaying = true;
     let beat = 0;
@@ -3258,7 +3259,10 @@ const Sound = {
       beat++;
     }, track.interval);
   },
-  stopMusic() { clearInterval(this.musicInterval); this.musicPlaying = false; },
+  stopMusic() {
+    if (this.musicInterval) { clearInterval(this.musicInterval); this.musicInterval = null; }
+    this.musicPlaying = false;
+  },
   setTrack(id) {
     if (!this._tracks[id]) return;
     this.trackId = id;
@@ -3371,8 +3375,11 @@ function renderTopicPills() {
   }
 }
 function showScreen(id) {
+  if (typeof stopAllTimers === 'function') stopAllTimers();
+  const gw = $('gradeWrap'); if (gw && id !== 'result') gw.hidden = true;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  $(id).classList.add('active');
+  const target = $(id);
+  if (target) target.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
   renderPerkBar(id);
 }
@@ -3434,7 +3441,9 @@ function exitRange() {
 // ---------- COINS + INVENTORY (v9) ----------
 function getCoins() {
   const v = parseInt(localStorage.getItem('cram_coins') || '0', 10);
-  return Number.isFinite(v) && v >= 0 ? v : 0;
+  if (!Number.isFinite(v) || v < 0) return 0;
+  // Clamp on READ too — prevents console-tampering inflation (e.g. cram_coins=999999999)
+  return Math.min(v, 999999);
 }
 function addCoins(n) {
   // Guard: must be a positive finite integer
@@ -3468,11 +3477,15 @@ function getInventory() {
 }
 function setInventory(inv) { localStorage.setItem('cram_inv', JSON.stringify(inv)); }
 function bumpInventory(key, by = 1) {
-  // Guard: prevent negative bumps which would silently shrink inventory
   by = parseInt(by, 10);
   if (!Number.isFinite(by) || by <= 0) return getInventory()[key] || 0;
   const inv = getInventory();
-  inv[key] = Math.min((inv[key] || 0) + by, 9999);
+  const before = inv[key] || 0;
+  const wanted = before + by;
+  inv[key] = Math.min(wanted, 9999);
+  if (wanted > 9999 && typeof showSnack === 'function') {
+    showSnack(`${key.replace('_', ' ')} maxed out (9999)`);
+  }
   setInventory(inv);
   if (typeof renderPerkBar === 'function') renderPerkBar();
   return inv[key];
@@ -3504,12 +3517,26 @@ const SHOP_ITEMS = [
 ];
 
 // Mystery Crate daily counter — prevents the infinite-coin grind exploit
+function _todayISO() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
 function getMysteryDaily() {
-  const today = new Date().toDateString();
+  const today = _todayISO();
   let log;
   try { log = JSON.parse(localStorage.getItem('cram_mystery_log') || '{}'); }
   catch (e) { log = {}; }
-  if (log.date !== today) { log.date = today; log.count = 0; }
+  // Anti-tampering: track the highest date ever seen. If "today" is BEFORE that
+  // (clock rolled back), keep the existing counter rather than resetting.
+  const maxDate = log.maxDate || log.date || '';
+  if (maxDate && today < maxDate) {
+    return log;
+  }
+  if (log.date !== today) {
+    log.date = today;
+    log.count = 0;
+  }
+  if (!log.maxDate || today > log.maxDate) log.maxDate = today;
   return log;
 }
 function bumpMysteryDaily() {
@@ -4318,9 +4345,17 @@ function unlock(id) {
 // ---------- WRONG-ANSWER TEACHING MODAL (pause + show right answer + def) ----------
 let wrongModalResume = null;
 let wrongModalOpen = false;
+let wrongModalPrevFocus = null;
+let wrongModalOpenedAt = 0;
 function showWrongModal(opts) {
   wrongModalResume = opts.onClose || null;
+  const shop = $('shopModal'); if (shop && shop.classList.contains('active')) shop.classList.remove('active');
+  const settings = $('settingsModal'); if (settings && settings.classList.contains('active')) settings.classList.remove('active');
+  const profile = $('profileModal'); if (profile && profile.classList.contains('active')) profile.classList.remove('active');
+  const stats = $('statsModal'); if (stats && stats.classList.contains('active')) stats.classList.remove('active');
+  wrongModalPrevFocus = document.activeElement;
   wrongModalOpen = true;
+  wrongModalOpenedAt = Date.now();
   const m = $('wrongModal'); if (!m) { if (wrongModalResume) wrongModalResume(); return; }
   $('wmTerm').textContent = opts.term || '—';
   $('wmDef').textContent  = opts.def  || '—';
@@ -4333,15 +4368,28 @@ function showWrongModal(opts) {
   setTimeout(() => { const c = $('wmClose'); if (c) c.focus(); }, 60);
 }
 function closeWrongModal() {
+  if (Date.now() - wrongModalOpenedAt < 200) return;
   const m = $('wrongModal'); if (m) { m.classList.remove('active'); m.setAttribute('aria-hidden', 'true'); }
   wrongModalOpen = false;
   Sound.click();
   const fn = wrongModalResume;
   wrongModalResume = null;
+  if (wrongModalPrevFocus && typeof wrongModalPrevFocus.focus === 'function') {
+    try { wrongModalPrevFocus.focus(); } catch (e) {}
+  }
+  wrongModalPrevFocus = null;
   if (fn) fn();
 }
 document.addEventListener('keydown', e => {
-  if (wrongModalOpen && (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape')) {
+  if (!wrongModalOpen) return;
+  const active = document.activeElement;
+  const inEditable = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    closeWrongModal();
+    return;
+  }
+  if ((e.key === 'Enter' || e.key === ' ') && !inEditable) {
     e.preventDefault();
     closeWrongModal();
   }
@@ -4548,8 +4596,12 @@ function renderStudyTimer() {
   const el = $('studyTimer');
   if (!el) return;
   const s = getTimerState();
+  const isIdle = el.classList.contains('idle');
+  const stateText = isIdle ? ' (paused)' : '';
   el.innerHTML = `<span class="t-icon">⏱</span><span class="t-val">${formatTime(s.todaySecs)}</span>`;
   el.title = `Active study today: ${formatTime(s.todaySecs)} · All-time: ${formatTime(s.totalSecs)}\n(Pauses after 60s idle or when tab is hidden.)`;
+  el.setAttribute('aria-label', `Study time today: ${formatTime(s.todaySecs)}${stateText}`);
+  el.setAttribute('role', 'status');
 }
 
 // ---------- COMBO JUICE ----------
@@ -4827,6 +4879,8 @@ function bossTriggerDefeat() {
     void hud.offsetWidth;
     hud.classList.add('boss-defeat');
   }
+  document.body.classList.remove('boss-low-hp', 'boss-enraged');
+  const fill = $('bossHpFill'); if (fill) fill.classList.remove('danger');
   showBossBanner('🏆 DEFEATED', bossActive ? (bossActive.kicker || 'Boss down.') : 'Boss down.', 'defeat');
   fireConfetti(180);
   Sound.victory();
@@ -5676,13 +5730,16 @@ function startType() {
   if (typeTerms.length === 0) { showSnack('No terms in this filter to type'); return; }
   typeOrder = shuffle([...Array(typeTerms.length).keys()]).slice(0, Math.min(TYPE_MAX, typeTerms.length));
   typeIdx = 0; typeScore = 0; typeStreak = 0; typeBest = 0; typeCorrect = 0;
+  typeSkipCount = 0; // reset skip counter at start of each round
   $('tTotal').textContent = typeOrder.length;
   Sound.click(); showScreen('type'); nextType();
   unlock('first_game');
 }
 function nextType() {
   if (typeIdx >= typeOrder.length) return endType();
+  if (!typeTerms || typeOrder.length === 0) return endType();
   const t = typeTerms[typeOrder[typeIdx]];
+  if (!t) return endType(); // safety: bail if data went missing
   typeHintUsed = false;
   typeAnswered = false; // re-entry guard for double-fires
   $('tNum').textContent = typeIdx + 1;
@@ -5809,15 +5866,34 @@ function typeHint() {
   if (freeHint) showSnack('💡 Free hint used');
   Sound.click();
 }
+// Skip cap: max ~25% of round, otherwise no coin reward to prevent cheese-runs
+let typeSkipCount = 0;
+function typeSkipsAllowed() { return Math.max(2, Math.floor((typeOrder.length || 10) * 0.25)); }
 function typeSkip() {
+  if (typeAnswered) return;
+  if (typeSkipCount >= typeSkipsAllowed()) {
+    Sound.wrong();
+    showSnack(`Skip cap reached (${typeSkipsAllowed()}/round) — type it or use a hint`);
+    return;
+  }
+  typeAnswered = true;
+  typeSkipCount++;
   typeStreak = 0;
   Sound.wrong();
-  // Show the answer briefly
   const t = typeTerms[typeOrder[typeIdx]];
+  if (!t) { typeIdx++; nextType(); return; }
   recordTermResult(t.term, false);
-  renderTypeTarget(t.term, t.term);
+  const target = stripTermPrefix(t.term);
+  renderTypeTarget(target, target);
   $('tInput').disabled = true;
-  setTimeout(() => { typeIdx++; nextType(); }, 1500);
+  showWrongModal({
+    term: target,
+    def: t.def,
+    label: 'Skipped — the word was',
+    stampText: 'SKIPPED',
+    stampClass: 'timeout-stamp',
+    onClose: () => { typeIdx++; nextType(); }
+  });
 }
 function endType() {
   markCompleted('type');
@@ -5953,7 +6029,23 @@ function endSurvival() {
   showScreen('result');
 }
 
-function stopAllTimers() { clearInterval(qTimer); clearInterval(mTimer); clearInterval(sTimer); }
+// Central timer cleanup — extended to include Range, Memory, and Blitz timers
+// so an orphaned timer can never fire on the wrong screen.
+function stopAllTimers() {
+  try { clearInterval(qTimer);       } catch(e){}
+  try { clearInterval(mTimer);       } catch(e){}
+  try { clearInterval(sTimer);       } catch(e){}
+  try { if (typeof rRoundTimer !== 'undefined' && rRoundTimer) clearInterval(rRoundTimer); } catch(e){}
+  try { if (typeof memTimer    !== 'undefined' && memTimer)    clearInterval(memTimer);    } catch(e){}
+  try { if (typeof bTickTimer  !== 'undefined' && bTickTimer)  clearInterval(bTickTimer);  } catch(e){}
+  try { if (typeof bSpawnTimer !== 'undefined' && bSpawnTimer) clearInterval(bSpawnTimer); } catch(e){}
+}
+// Safe JSON.parse — returns fallback on any throw or null input
+function safeParseJSON(s, fallback) {
+  if (s == null) return fallback;
+  try { const v = JSON.parse(s); return v == null ? fallback : v; }
+  catch (e) { return fallback; }
+}
 
 // ---------- SNACK TOAST ----------
 let snackTimer = null;
