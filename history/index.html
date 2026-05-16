@@ -4469,13 +4469,14 @@ function doSpin(isPaid) {
 
   const segments = SPIN_OUTCOMES.length;
   const anglePerSegment = 360 / segments;
-  // Land the pointer in the middle of wedge `idx`. Wheel spins clockwise (negative rotation).
-  // To land wedge i at 12 o'clock, the wheel must rotate so wedge center is at -90deg from start.
-  // Wedge i center angle (from wheel start) = i*45 + 22.5. Pointer is at 270deg (top, which is -90deg).
-  // We want: (wedge_center + rotation) % 360 = 270 (mod 360). So rotation = 270 - (i*45 + 22.5) mod 360.
+  // Conic-gradient starts at 12 o'clock (0°) and goes clockwise. Pointer is at the top = 0°.
+  // Wedge i's center is at (i*45 + 22.5)°. To land its center under the pointer, rotate by
+  // -(wedgeCenter)°, i.e. (360 - wedgeCenter)°.  Add a small random jitter so the pointer
+  // doesn't always sit on the exact center line.
   const wedgeCenter = idx * anglePerSegment + anglePerSegment / 2;
-  let baseRot = (270 - wedgeCenter + 360) % 360;
-  // Add 5+ full rotations for the spinning effect
+  const jitter = (Math.random() - 0.5) * (anglePerSegment * 0.5); // ±~11° within the wedge
+  let baseRot = ((360 - wedgeCenter) + jitter + 360) % 360;
+  // Add 5–7 full rotations for the spinning effect
   const fullRotations = 5 + Math.floor(Math.random() * 3);
   const finalRotation = fullRotations * 360 + baseRot;
 
@@ -4483,8 +4484,15 @@ function doSpin(isPaid) {
   if (wheel) {
     spinInProgress = true;
     Sound.click();
-    wheel.style.transition = 'transform 3.4s cubic-bezier(0.18, 0.85, 0.22, 1)';
-    wheel.style.transform = `rotate(${finalRotation}deg)`;
+    // Two-phase commit so the browser actually runs the transition:
+    // (1) snap to 0° with no transition, (2) on next frame apply the transition + final angle.
+    wheel.style.transition = 'none';
+    wheel.style.transform = 'rotate(0deg)';
+    void wheel.offsetWidth; // force reflow so the reset commits
+    requestAnimationFrame(() => {
+      wheel.style.transition = 'transform 3.4s cubic-bezier(0.18, 0.85, 0.22, 1)';
+      wheel.style.transform = `rotate(${finalRotation}deg)`;
+    });
     $('swResult').textContent = 'Spinning…';
     $('swResult').className = 'sw-result';
     renderSpinStatus();
