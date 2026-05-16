@@ -3716,12 +3716,25 @@ function useInventory(key) {
   return true;
 }
 // Award coins after a game ends. base 1; +2 hi-score; +2 perfect/clean
+// + STUDY COMBO: 3+ games within 30 min → 1.2× multiplier (encourages sustained study)
+let _comboCount = 0;
+let _lastGameAt = 0;
+const COMBO_WINDOW_MS = 30 * 60 * 1000;
+const COMBO_THRESHOLD = 3;
+const COMBO_MULT = 1.2;
 function awardCoins(opts = {}) {
   let amt = 1;
   if (opts.newHi) amt += 2;
   if (opts.perfect) amt += 2;
+  const now = Date.now();
+  if (now - _lastGameAt < COMBO_WINDOW_MS) _comboCount++;
+  else _comboCount = 1;
+  _lastGameAt = now;
+  const onCombo = _comboCount >= COMBO_THRESHOLD;
+  if (onCombo) amt = Math.round(amt * COMBO_MULT);
   addCoins(amt);
-  showSnack(`+${amt} 💰`);
+  const tail = onCombo ? ` 🔥 ×${COMBO_MULT} STUDY COMBO!` : '';
+  showSnack(`+${amt} 💰${tail}`);
   return amt;
 }
 
@@ -4590,7 +4603,10 @@ function closeWrongModal() {
   Sound.click();
   const fn = wrongModalResume;
   wrongModalResume = null;
-  if (wrongModalPrevFocus && typeof wrongModalPrevFocus.focus === 'function') {
+  // Restore focus to where it was before the modal opened — but ONLY if the element
+  // is still in the document. Otherwise focus would land in limbo on a detached node.
+  if (wrongModalPrevFocus && typeof wrongModalPrevFocus.focus === 'function'
+      && document.contains(wrongModalPrevFocus)) {
     try { wrongModalPrevFocus.focus(); } catch (e) {}
   }
   wrongModalPrevFocus = null;
@@ -4743,6 +4759,7 @@ function doSpin(isPaid) {
 function _applySpinOutcome(outcome) {
   const res = $('swResult');
   let cls = 'sw-result';
+  let label = outcome.label; // copy so we don't mutate the config
   if (outcome.delta > 0) {
     addCoins(outcome.delta);
     cls += ' good';
@@ -4753,7 +4770,7 @@ function _applySpinOutcome(outcome) {
     const take = Math.min(cur, -outcome.delta);
     if (take > 0) spendCoins(take);
     if (take < -outcome.delta) {
-      outcome = Object.assign({}, outcome, { label: outcome.label + ' (only had ' + take + ')' });
+      label = outcome.label + ' (only had ' + take + ')';
     }
     cls += ' bad';
     Sound.wrong();
@@ -4766,7 +4783,7 @@ function _applySpinOutcome(outcome) {
     Sound.click();
   }
   res.className = cls;
-  res.textContent = outcome.label;
+  res.textContent = label;
 }
 // All 9 game modes count toward 'all_modes'. 'all_games' (Arcade Champ) is the older 5-mode milestone.
 const ALL_MODE_IDS = ['flash','quiz','match','type','surv','range','blitz','memory','boss'];
@@ -6221,8 +6238,11 @@ function typeWrong() {
 // Progressive-reveal hint: each click reveals the NEXT letter. Skips spaces/punctuation.
 // Always leaves the LAST letter for Corbin to type — preserves active recall.
 let typeRevealedCount = 0; // alphanumeric letters revealed via hint this question
+let typeHintLocked = false; // debounce so rapid taps don't double-reveal
 function typeHint() {
-  if (typeAnswered) return;
+  if (typeAnswered || typeHintLocked) return;
+  typeHintLocked = true;
+  setTimeout(() => { typeHintLocked = false; }, 180);
   const t = typeTerms[typeOrder[typeIdx]];
   if (!t) return;
 
