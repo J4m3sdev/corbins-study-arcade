@@ -6098,6 +6098,7 @@ function nextType() {
   if (!t) return endType(); // safety: bail if data went missing
   typeHintUsed = false;
   typeAnswered = false; // re-entry guard for double-fires
+  typeRevealedCount = 0; // reset hint reveal counter for each question
   $('tNum').textContent = typeIdx + 1;
   $('tScore').textContent = typeScore;
   $('tStreak').innerHTML = typeStreak + '🔥';
@@ -6204,22 +6205,51 @@ function typeWrong() {
     onClose: () => { typeIdx++; nextType(); }
   });
 }
+// Progressive-reveal hint: each click reveals the NEXT letter. Skips spaces/punctuation.
+// Always leaves the LAST letter for Corbin to type — preserves active recall.
+let typeRevealedCount = 0; // alphanumeric letters revealed via hint this question
 function typeHint() {
-  // v9: free hint if user has hint inventory; otherwise normal hint (still cheap)
-  const freeHint = useInventory('hint');
-  typeHintUsed = !freeHint; // free hints don't penalize score
+  if (typeAnswered) return;
   const t = typeTerms[typeOrder[typeIdx]];
-  // Reveal first letter
-  const input = $('tInput');
-  if (input.value.length === 0) {
-    const firstLetter = t.term.match(/[a-zA-Z]/);
-    if (firstLetter) {
-      input.value = firstLetter[0].toUpperCase();
-      renderTypeTarget(t.term, input.value);
-      input.focus();
+  if (!t) return;
+
+  const target = stripTermPrefix(t.term);
+  const targetAlnum = target.replace(/[^a-zA-Z0-9]/g, '');
+  const maxReveals = Math.max(1, targetAlnum.length - 1);
+
+  if (typeRevealedCount >= maxReveals) {
+    showSnack('Last letter is on you 💪');
+    Sound.wrong();
+    return;
+  }
+
+  typeRevealedCount++;
+
+  let alnumSeen = 0, cutPos = 0;
+  for (let i = 0; i < target.length; i++) {
+    if (/[a-zA-Z0-9]/.test(target[i])) {
+      alnumSeen++;
+      if (alnumSeen === typeRevealedCount) { cutPos = i + 1; break; }
     }
   }
-  if (freeHint) showSnack('💡 Free hint used');
+  while (cutPos < target.length && !/[a-zA-Z0-9]/.test(target[cutPos])) cutPos++;
+  const newVal = target.slice(0, cutPos).replace(/[^a-zA-Z0-9 ]/g, '');
+
+  const input = $('tInput');
+  input.value = newVal;
+  renderTypeTarget(target, newVal);
+
+  const freeHint = useInventory('hint');
+  typeHintUsed = true;
+  const remainingInv = (getInventory().hint || 0);
+  if (freeHint) {
+    showSnack(`💡 Hint · ${typeRevealedCount}/${maxReveals} letters · ${remainingInv} left`);
+  } else {
+    showSnack(`💡 Hint · ${typeRevealedCount}/${maxReveals} letters · score reduced`);
+  }
+
+  input.focus();
+  try { input.setSelectionRange(newVal.length, newVal.length); } catch (e) {}
   Sound.click();
 }
 // Skip cap: max ~25% of round, otherwise no coin reward to prevent cheese-runs
