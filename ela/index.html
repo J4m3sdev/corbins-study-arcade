@@ -1061,6 +1061,67 @@
     from { box-shadow: 0 0 10px #ffd700; }
     to   { box-shadow: 0 0 22px #ffd700, 0 0 40px rgba(255,215,0,0.6); }
   }
+  /* ---------- DEV PANEL (inside Settings, password-gated) ---------- */
+  #devPanel { width: 100%; }
+  .dev-status-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap;
+    padding: 10px 12px; margin-bottom: 10px;
+    background: rgba(255,213,138,0.06);
+    border: 1px solid rgba(255,213,138,0.32);
+    border-radius: 4px;
+  }
+  .dev-status {
+    flex: 1; min-width: 180px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+  .dev-section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.18em;
+    color: var(--cyan); text-transform: uppercase;
+    margin: 12px 0 6px;
+  }
+  .dev-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;
+    margin-bottom: 6px;
+  }
+  @media (min-width: 480px) {
+    .dev-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  .dev-row {
+    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+    margin-bottom: 6px;
+  }
+  .dev-btn {
+    background: var(--bg-3);
+    border: 1px solid var(--bg-4);
+    color: var(--ink);
+    padding: 9px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .dev-btn:hover { background: var(--bg-4); transform: translateY(-1px); }
+  .dev-btn:active { transform: translateY(0); }
+  .dev-btn.good   { border-color: var(--lime); color: var(--lime); }
+  .dev-btn.danger { border-color: var(--red);  color: var(--red); }
+  .dev-input {
+    flex: 1; min-width: 120px;
+    background: var(--bg-3);
+    border: 1px solid var(--bg-4);
+    color: var(--ink);
+    padding: 9px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    border-radius: 4px;
+  }
+  .dev-input:focus { outline: none; border-color: var(--cyan); }
+
   /* ---------- LUCKY TERM CARD ---------- */
   .lucky-term-card {
     margin: 14px 0;
@@ -3161,6 +3222,52 @@
       <div class="toggle-row">
         <span class="setting-label" style="margin: 0; font-size: 13px;">RESET ALL DATA</span>
         <button class="toggle-btn" onclick="resetAll()" style="color: var(--red); border-color: var(--red);">RESET</button>
+      </div>
+    </div>
+
+    <div class="modal-section-label">// DEV</div>
+    <div class="setting-row" id="devSection">
+      <div id="devLoginRow">
+        <div class="toggle-row">
+          <span class="setting-label" style="margin: 0; font-size: 13px;">DEV TOOLS</span>
+          <button class="toggle-btn" onclick="devPrompt()" style="color: var(--cyan); border-color: var(--cyan);">🔒 LOGIN</button>
+        </div>
+      </div>
+      <div id="devPanel" hidden>
+        <div class="dev-status-row">
+          <span class="dev-status" id="devStatus">—</span>
+          <button class="dev-btn danger" onclick="devLogout()">🔓 LOGOUT</button>
+        </div>
+        <div class="dev-grid">
+          <button class="dev-btn good" onclick="devAddCoins(50)">+50 💰</button>
+          <button class="dev-btn good" onclick="devAddCoins(100)">+100 💰</button>
+          <button class="dev-btn good" onclick="devAddCoins(500)">+500 💰</button>
+          <button class="dev-btn good" onclick="devAddCoins(1000)">+1000 💰</button>
+        </div>
+        <div class="dev-row">
+          <input type="number" id="devCoinInput" class="dev-input" placeholder="Amount" value="200">
+          <button class="dev-btn" onclick="devAddCustom()">ADD</button>
+          <button class="dev-btn" onclick="devSetCustom()">SET</button>
+        </div>
+        <div class="dev-section-label">GRANT PERKS</div>
+        <div class="dev-grid">
+          <button class="dev-btn" onclick="devGrant('extra_life', 5)">+5 ❤️</button>
+          <button class="dev-btn" onclick="devGrant('streak_shield', 5)">+5 🛡️</button>
+          <button class="dev-btn" onclick="devGrant('hint', 20)">+20 💡</button>
+          <button class="dev-btn" onclick="devGrant('spin_token', 10)">+10 🎰</button>
+        </div>
+        <div class="dev-section-label">RESET</div>
+        <div class="dev-grid">
+          <button class="dev-btn danger" onclick="devReset('coins')">RESET COINS</button>
+          <button class="dev-btn danger" onclick="devReset('inv')">RESET INV</button>
+          <button class="dev-btn danger" onclick="devReset('mastery')">RESET MASTERY</button>
+          <button class="dev-btn danger" onclick="devReset('spin')">RESET SPIN DAILY</button>
+        </div>
+        <div class="dev-section-label">UNLOCK</div>
+        <div class="dev-grid">
+          <button class="dev-btn" onclick="devUnlockAll()">UNLOCK ALL MODES</button>
+          <button class="dev-btn" onclick="devMasterAll()">MASTER ALL TERMS</button>
+        </div>
       </div>
     </div>
   </div>
@@ -6692,10 +6799,108 @@ function openSettings() {
   Sound.click();
   $('settingsModal').classList.add('active');
   Sound.updateUI();
+  if (typeof renderDevPanel === 'function') renderDevPanel();
 }
 function closeSettings() {
   Sound.click();
   $('settingsModal').classList.remove('active');
+}
+
+// ---------- DEV PANEL (password-gated; session-only, clears on logout/tab close) ----------
+const DEV_PASS = '123';
+function isDevLoggedIn() {
+  try { return sessionStorage.getItem('cram_dev_session') === '1'; } catch (e) { return false; }
+}
+function devPrompt() {
+  const pass = prompt('Dev password:');
+  if (pass === null) return;
+  if (pass === DEV_PASS) {
+    try { sessionStorage.setItem('cram_dev_session', '1'); } catch (e) {}
+    showSnack('🔓 Dev access granted');
+    renderDevPanel();
+  } else {
+    showSnack('Wrong password');
+    Sound.wrong();
+  }
+}
+function devLogout() {
+  try { sessionStorage.removeItem('cram_dev_session'); } catch (e) {}
+  showSnack('🔒 Dev logged out');
+  renderDevPanel();
+}
+function renderDevPanel() {
+  const loginRow = $('devLoginRow');
+  const panel = $('devPanel');
+  if (!loginRow || !panel) return;
+  const loggedIn = isDevLoggedIn();
+  loginRow.hidden = loggedIn;
+  panel.hidden = !loggedIn;
+  if (loggedIn) renderDevStatus();
+}
+function renderDevStatus() {
+  const inv = getInventory();
+  const s = $('devStatus');
+  if (!s) return;
+  s.textContent = `💰 ${getCoins()} · 💡${inv.hint||0} · ❤️${inv.extra_life||0} · 🛡️${inv.streak_shield||0} · 🎰${inv.spin_token||0}`;
+}
+function _devGuard() {
+  if (!isDevLoggedIn()) { showSnack('Dev session expired — log in again'); renderDevPanel(); return false; }
+  return true;
+}
+function devAddCoins(n) {
+  if (!_devGuard()) return;
+  addCoins(n);
+  showSnack(`DEV: +${n} 💰`);
+  renderDevStatus();
+}
+function devAddCustom() {
+  if (!_devGuard()) return;
+  const n = parseInt($('devCoinInput').value, 10);
+  if (!Number.isFinite(n) || n === 0) { showSnack('Bad amount'); return; }
+  if (n > 0) { addCoins(n); showSnack(`DEV: +${n} 💰`); }
+  else { spendCoins(Math.abs(n)); showSnack(`DEV: ${n} 💰`); }
+  renderDevStatus();
+}
+function devSetCustom() {
+  if (!_devGuard()) return;
+  const n = parseInt($('devCoinInput').value, 10);
+  if (!Number.isFinite(n) || n < 0) { showSnack('Bad amount'); return; }
+  localStorage.setItem('cram_coins', String(Math.min(n, 999999)));
+  renderCoinChip(true);
+  showSnack(`DEV: coins = ${getCoins()}`);
+  renderDevStatus();
+}
+function devGrant(key, qty) {
+  if (!_devGuard()) return;
+  bumpInventory(key, qty);
+  showSnack(`DEV: +${qty} ${key}`);
+  renderDevStatus();
+}
+function devReset(what) {
+  if (!_devGuard()) return;
+  if (!confirm(`Reset ${what}?`)) return;
+  if (what === 'coins')   { localStorage.setItem('cram_coins', '0'); renderCoinChip(true); }
+  if (what === 'inv')     { localStorage.setItem('cram_inv', '{}'); if (typeof renderPerkBar === 'function') renderPerkBar(); }
+  if (what === 'mastery') { localStorage.setItem('cram_term_stats', '{}'); localStorage.setItem('cram_stat_terms_mastered', '0'); }
+  if (what === 'spin')    { localStorage.removeItem('cram_spin_log'); if (typeof renderSpinStatus === 'function') renderSpinStatus(); }
+  showSnack(`DEV: reset ${what}`);
+  renderDevStatus();
+}
+function devUnlockAll() {
+  if (!_devGuard()) return;
+  const allModes = ['flash','quiz','match','type','surv','range','blitz','memory','boss'];
+  localStorage.setItem('cram_tried', JSON.stringify(allModes));
+  localStorage.setItem('cram_completed', JSON.stringify(allModes));
+  showSnack('DEV: all modes unlocked');
+}
+function devMasterAll() {
+  if (!_devGuard()) return;
+  const stats = {};
+  TERMS.forEach(t => { stats[t.term] = { correct: 99, wrong: 0, streak: 99 }; });
+  localStorage.setItem('cram_term_stats', JSON.stringify(stats));
+  localStorage.setItem('cram_stat_terms_mastered', String(TERMS.length));
+  showSnack(`DEV: ${TERMS.length} terms mastered`);
+  renderDevStatus();
 }
 $('musicVol').addEventListener('input', e => Sound.setMusicVol(e.target.value / 100));
 $('sfxVol').addEventListener('input', e => Sound.setSfxVol(e.target.value / 100));
