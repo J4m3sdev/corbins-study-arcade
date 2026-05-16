@@ -4823,7 +4823,7 @@ function renderSpinStatus() {
   const statusEl = $('swStatus');
   if (statusEl) {
     const freeTxt = log.freeUsed ? 'used' : 'ready';
-    statusEl.textContent = `Free ${freeTxt} · ${log.paidCount}/${SPIN_DAILY_PAID_CAP} paid · ${tokens} 🎰 token${tokens === 1 ? '' : 's'}`;
+    statusEl.textContent = `Free ${freeTxt} · ${log.paidCount} paid spins today · ${tokens} 🎰 token${tokens === 1 ? '' : 's'}`;
   }
   const freeBtn = $('swFreeBtn');
   if (freeBtn) {
@@ -4833,9 +4833,8 @@ function renderSpinStatus() {
   const paidBtn = $('swPaidBtn');
   if (paidBtn) {
     const noCoin = getCoins() < SPIN_PAID_COST;
-    const capped = log.paidCount >= SPIN_DAILY_PAID_CAP;
-    paidBtn.disabled = noCoin || capped || spinInProgress;
-    paidBtn.textContent = capped ? 'PAID CAP HIT' : noCoin ? `NEED ${SPIN_PAID_COST}💰` : `PAY ${SPIN_PAID_COST}💰`;
+    paidBtn.disabled = noCoin || spinInProgress;
+    paidBtn.textContent = noCoin ? `NEED ${SPIN_PAID_COST}💰` : `PAY ${SPIN_PAID_COST}💰`;
   }
   const tokenBtn = $('swTokenBtn');
   if (tokenBtn) {
@@ -4873,7 +4872,7 @@ function doSpin(mode) {
 
   if (mode === 'free' && log.freeUsed) { showSnack('Free spin used. Pay 8💰, use a token, or come back tomorrow.'); return; }
   if (mode === 'paid') {
-    if (log.paidCount >= SPIN_DAILY_PAID_CAP) { showSnack(`Daily paid spin cap (${SPIN_DAILY_PAID_CAP}/day) — use a token to keep spinning.`); return; }
+    // No daily cap — paid spins are limited only by coin balance
     if (!spendCoins(SPIN_PAID_COST)) { showSnack(`Need ${SPIN_PAID_COST} coins to spin`); return; }
   }
   if (mode === 'token') {
