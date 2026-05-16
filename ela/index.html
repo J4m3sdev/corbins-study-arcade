@@ -1061,6 +1061,71 @@
     from { box-shadow: 0 0 10px #ffd700; }
     to   { box-shadow: 0 0 22px #ffd700, 0 0 40px rgba(255,215,0,0.6); }
   }
+  /* ---------- LUCKY TERM CARD ---------- */
+  .lucky-term-card {
+    margin: 14px 0;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, rgba(74,222,128,0.10), rgba(244,201,93,0.08));
+    border: 2px solid var(--green);
+    border-radius: 12px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 8px 22px rgba(74,222,128,0.18);
+    position: relative;
+    overflow: hidden;
+  }
+  .lucky-term-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(
+      -22deg, transparent 0 28px, rgba(74,222,128,0.04) 28px 30px
+    );
+    pointer-events: none;
+  }
+  .lucky-term-card.claimed {
+    opacity: 0.7;
+    border-color: var(--ink-dim);
+    box-shadow: none;
+  }
+  .lucky-term-card.claimed::before { opacity: 0.3; }
+  .lucky-term-card .lt-icon {
+    font-size: 32px;
+    line-height: 1;
+    filter: drop-shadow(0 2px 6px rgba(74,222,128,0.4));
+    animation: lt-sparkle 2.4s ease-in-out infinite;
+  }
+  .lucky-term-card.claimed .lt-icon { animation: none; filter: grayscale(0.6); }
+  @keyframes lt-sparkle {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    25%      { transform: rotate(-12deg) scale(1.08); }
+    50%      { transform: rotate(8deg) scale(1.04); }
+    75%      { transform: rotate(-4deg) scale(1.1); }
+  }
+  .lucky-term-card .lt-body { flex: 1; min-width: 0; }
+  .lucky-term-card .lt-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .lucky-term-card.claimed .lt-label { color: var(--ink-dim); }
+  .lucky-term-card .lt-term {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.3;
+    margin-bottom: 4px;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.4);
+    word-break: break-word;
+  }
+  .lucky-term-card .lt-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.04em;
+  }
+
   /* ---------- WHEEL OF FORTUNE (gambling-style daily spin) ---------- */
   .spin-modal {
     position: fixed; inset: 0;
@@ -2637,6 +2702,14 @@
     </div>
     <div class="finals-card" id="finalsCard" role="status" aria-live="polite"></div>
     <div class="daily-challenge" id="dailyChallenge" role="status"></div>
+    <div class="lucky-term-card" id="luckyTermCard" role="status" hidden>
+      <div class="lt-icon">🍀</div>
+      <div class="lt-body">
+        <div class="lt-label">// TODAY'S LUCKY TERM</div>
+        <div class="lt-term" id="ltTerm">—</div>
+        <div class="lt-status" id="ltStatus">Get it right in ANY game for +5 💰 bonus</div>
+      </div>
+    </div>
     <button class="quick-play" id="quickPlayBtn" onclick="quickPlay()" aria-label="Quick play — picks the best next thing to study">
       <span class="qp-icon">▶</span>
       <span class="qp-text">
@@ -3648,6 +3721,7 @@ function goHome() {
   renderDailyChallenge();
   renderModeLocks();
   if (typeof renderSpinStatus === 'function') renderSpinStatus();
+  if (typeof renderLuckyTerm === 'function') renderLuckyTerm();
 }
 function exitRange() {
   rActive = false;
@@ -3735,6 +3809,8 @@ function awardCoins(opts = {}) {
   addCoins(amt);
   const tail = onCombo ? ` 🔥 ×${COMBO_MULT} STUDY COMBO!` : '';
   showSnack(`+${amt} 💰${tail}`);
+  // 🌟 Mastery Burst: granted AFTER base award so the snacks queue cleanly
+  if (typeof _checkMasteryBurst === 'function') _checkMasteryBurst();
   return amt;
 }
 
@@ -4632,6 +4708,61 @@ function stripTermPrefix(s) {
   return (s || '').replace(/^\d+[a-z]?\.\s*/i, '');
 }
 
+// ---------- LUCKY TERM DAILY ----------
+function getLuckyTermIndex() {
+  const today = _todayISO();
+  let h = 0;
+  for (let i = 0; i < today.length; i++) h = ((h << 5) - h + today.charCodeAt(i)) | 0;
+  return Math.abs(h) % Math.max(1, TERMS.length);
+}
+function getLuckyTerm() { return TERMS[getLuckyTermIndex()]; }
+function getLuckyClaimed() {
+  const today = _todayISO();
+  const log = safeParseJSON(localStorage.getItem('cram_lucky_log'), {});
+  return log.date === today && !!log.claimed;
+}
+function claimLuckyTerm() {
+  const today = _todayISO();
+  const log = safeParseJSON(localStorage.getItem('cram_lucky_log'), {});
+  const maxDate = log.maxDate || log.date || '';
+  if (maxDate && today < maxDate) return false;
+  if (log.date === today && log.claimed) return false;
+  log.date = today;
+  log.claimed = true;
+  if (!log.maxDate || today > log.maxDate) log.maxDate = today;
+  localStorage.setItem('cram_lucky_log', JSON.stringify(log));
+  return true;
+}
+function renderLuckyTerm() {
+  const card = $('luckyTermCard'); if (!card) return;
+  const lucky = getLuckyTerm(); if (!lucky) { card.hidden = true; return; }
+  card.hidden = false;
+  $('ltTerm').textContent = lucky.term;
+  const claimed = getLuckyClaimed();
+  card.classList.toggle('claimed', claimed);
+  $('ltStatus').textContent = claimed
+    ? '✓ Claimed today · back tomorrow for a new term'
+    : 'Get it right in ANY game for +5 💰 bonus';
+}
+
+// ---------- MASTERY BURST ----------
+let _thisGameMasteries = 0;
+function _checkMasteryBurst() {
+  if (_thisGameMasteries < 3) { _thisGameMasteries = 0; return; }
+  const count = _thisGameMasteries;
+  _thisGameMasteries = 0;
+  const log = getSpinDaily();
+  if (log.freeUsed) {
+    log.freeUsed = false;
+    saveSpinDaily(log);
+    showSnack(`🌟 MASTERY BURST × ${count} — free spin restored!`);
+  } else {
+    addCoins(8);
+    showSnack(`🌟 MASTERY BURST × ${count} — +8 💰 bonus!`);
+  }
+  if (typeof renderSpinStatus === 'function') renderSpinStatus();
+}
+
 // ---------- WHEEL OF FORTUNE ----------
 const SPIN_OUTCOMES = [
   { id: 'jackpot', label: '🎰 JACKPOT!',         delta: 50,  weight: 0.05 },
@@ -4844,12 +4975,24 @@ function recordTermResult(termStr, gotCorrect) {
   all[termStr] = s;
   saveTermStats(all);
   bumpDailyCount();
+  // 🍀 LUCKY TERM: if this correct answer is today's lucky term and not yet claimed, +5 bonus
+  if (gotCorrect) {
+    const lucky = getLuckyTerm();
+    if (lucky && lucky.term === termStr && !getLuckyClaimed()) {
+      if (claimLuckyTerm()) {
+        addCoins(5);
+        showSnack(`🍀 LUCKY TERM! +5 💰 (today's bonus claimed)`);
+        if (typeof renderLuckyTerm === 'function') renderLuckyTerm();
+      }
+    }
+  }
   // When a previously-missed term hits mastery, count it toward the drill achievement
   if (gotCorrect && wasMissed && s.streak >= MASTERY_TARGET) {
     bumpStat('drilled_terms');
   }
   // Mastery unlock moment
   if (!wasMastered && s.streak >= MASTERY_TARGET) {
+    _thisGameMasteries++; // 🌟 Mastery-burst tracking
     bumpStat('terms_mastered');
     const total = getStat('terms_mastered');
     if (total >= 25) unlock('mastery_25');
