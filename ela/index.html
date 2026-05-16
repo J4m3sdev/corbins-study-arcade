@@ -2817,34 +2817,6 @@
       <div class="perk-chip perk-coin-chip" id="perkCoins" title="Coins"><span class="icon">💰</span><span class="count">0</span></div>
       <button class="perk-shop-btn" onclick="openShop()">+ BUY</button>
     </div>
-    <!-- Wheel of Fortune modal — 1 free spin/day + paid extra spins (max 5/day) -->
-    <div class="spin-modal" id="spinModal" aria-hidden="true">
-      <div class="sw-card">
-        <h2>🎰 WHEEL OF FORTUNE</h2>
-        <div class="sw-sub">Daily luck · coins · perks · ruin</div>
-        <div class="sw-rim">
-          <div class="sw-pointer"></div>
-          <div class="sw-wheel" id="spinWheel">
-            <div class="sw-label" style="transform: rotate(22.5deg) translateY(-105px);"><span class="ic">💎</span>JACKPOT</div>
-            <div class="sw-label" style="transform: rotate(67.5deg) translateY(-105px);"><span class="ic">💰💰</span>+15</div>
-            <div class="sw-label" style="transform: rotate(112.5deg) translateY(-105px);"><span class="ic">💰</span>+5</div>
-            <div class="sw-label" style="transform: rotate(157.5deg) translateY(-105px);"><span class="ic">❤️</span>+LIFE</div>
-            <div class="sw-label" style="transform: rotate(202.5deg) translateY(-105px);"><span class="ic">💡</span>+HINTS</div>
-            <div class="sw-label" style="transform: rotate(247.5deg) translateY(-105px);"><span class="ic">💸</span>-5</div>
-            <div class="sw-label" style="transform: rotate(292.5deg) translateY(-105px);"><span class="ic">💀</span>-10</div>
-            <div class="sw-label" style="transform: rotate(337.5deg) translateY(-105px);"><span class="ic">🪤</span>BUST</div>
-          </div>
-          <div class="sw-hub">SPIN</div>
-        </div>
-        <div class="sw-status" id="swStatus">Free spin ready · 0/5 paid spins used</div>
-        <div class="sw-result" id="swResult">Hit SPIN to test your luck.</div>
-        <div class="sw-actions">
-          <button class="sw-btn" id="swFreeBtn" onclick="doSpin(false)">FREE SPIN</button>
-          <button class="sw-btn paid" id="swPaidBtn" onclick="doSpin(true)">PAY 8💰</button>
-          <button class="sw-btn close" onclick="closeSpinWheel()">CLOSE</button>
-        </div>
-      </div>
-    </div>
     <!-- Wrong-answer teaching modal — pauses the game so Corbin sees the right answer -->
     <div class="wrong-modal" id="wrongModal" aria-hidden="true">
       <div class="wm-card">
@@ -3161,6 +3133,35 @@
 
 <!-- FLOATING COMBO BADGE -->
 <div class="combo-badge" id="comboBadge" aria-hidden="true">🔥 COMBO ×0</div>
+
+<!-- Wheel of Fortune modal — body-level so it can open from any screen -->
+<div class="spin-modal" id="spinModal" aria-hidden="true">
+  <div class="sw-card">
+    <h2>🎰 WHEEL OF FORTUNE</h2>
+    <div class="sw-sub">Daily luck · coins · perks · ruin</div>
+    <div class="sw-rim">
+      <div class="sw-pointer"></div>
+      <div class="sw-wheel" id="spinWheel">
+        <div class="sw-label" style="transform: rotate(22.5deg) translateY(-105px);"><span class="ic">💎</span>JACKPOT</div>
+        <div class="sw-label" style="transform: rotate(67.5deg) translateY(-105px);"><span class="ic">💰💰</span>+15</div>
+        <div class="sw-label" style="transform: rotate(112.5deg) translateY(-105px);"><span class="ic">💰</span>+5</div>
+        <div class="sw-label" style="transform: rotate(157.5deg) translateY(-105px);"><span class="ic">❤️</span>+LIFE</div>
+        <div class="sw-label" style="transform: rotate(202.5deg) translateY(-105px);"><span class="ic">💡</span>+HINTS</div>
+        <div class="sw-label" style="transform: rotate(247.5deg) translateY(-105px);"><span class="ic">💸</span>-5</div>
+        <div class="sw-label" style="transform: rotate(292.5deg) translateY(-105px);"><span class="ic">💀</span>-10</div>
+        <div class="sw-label" style="transform: rotate(337.5deg) translateY(-105px);"><span class="ic">🪤</span>BUST</div>
+      </div>
+      <div class="sw-hub">SPIN</div>
+    </div>
+    <div class="sw-status" id="swStatus">Free spin ready · 0/5 paid spins used</div>
+    <div class="sw-result" id="swResult">Hit SPIN to test your luck.</div>
+    <div class="sw-actions">
+      <button class="sw-btn" id="swFreeBtn" onclick="doSpin(false)">FREE SPIN</button>
+      <button class="sw-btn paid" id="swPaidBtn" onclick="doSpin(true)">PAY 8💰</button>
+      <button class="sw-btn close" onclick="closeSpinWheel()">CLOSE</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* =========================================================
