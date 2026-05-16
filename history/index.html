@@ -750,6 +750,200 @@
     from { box-shadow: 0 0 10px #ffd700; }
     to   { box-shadow: 0 0 22px #ffd700, 0 0 40px rgba(255,215,0,0.6); }
   }
+  /* ---------- WHEEL OF FORTUNE (gambling-style daily spin) ---------- */
+  .spin-modal {
+    position: fixed; inset: 0;
+    background: rgba(8,4,2,0.9);
+    z-index: 10010;
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .spin-modal.active { display: flex; animation: wm-fade-in 0.25s ease; }
+  .spin-modal .sw-card {
+    max-width: 480px; width: 100%;
+    background: linear-gradient(180deg, var(--bg-3) 0%, var(--bg) 100%);
+    border: 3px solid var(--lime);
+    border-radius: 18px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.7), 0 0 60px rgba(255,200,87,0.2);
+    position: relative;
+    animation: wm-pop 0.45s cubic-bezier(0.18,1.4,0.4,1);
+  }
+  .spin-modal h2 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(16px, 3vw, 22px);
+    color: var(--lime);
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+    text-shadow: 3px 3px 0 var(--pink);
+  }
+  .spin-modal .sw-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  /* Wheel rim — outer circle holding the wedges */
+  .spin-modal .sw-rim {
+    position: relative;
+    width: 280px; height: 280px;
+    margin: 0 auto 18px;
+  }
+  .spin-modal .sw-wheel {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(
+      #ffd700 0deg 45deg,
+      #ffaa00 45deg 90deg,
+      #fff5a0 90deg 135deg,
+      #ff5577 135deg 180deg,
+      #00e5ff 180deg 225deg,
+      #ff9900 225deg 270deg,
+      #8b0000 270deg 315deg,
+      #555  315deg 360deg
+    );
+    border: 6px solid var(--bg);
+    box-shadow:
+      0 0 0 4px var(--lime),
+      0 0 36px rgba(255,200,87,0.4),
+      0 18px 40px rgba(0,0,0,0.55);
+    transform: rotate(0deg);
+    /* Spin animation applied inline via JS */
+  }
+  .spin-modal .sw-wheel.spinning {
+    /* Easing transition is set inline at spin time so we can vary duration */
+  }
+  /* Wedge labels positioned around the wheel */
+  .spin-modal .sw-label {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 110px; height: 26px;
+    margin-left: -55px; margin-top: -13px;
+    text-align: center;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    color: #1a0808;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+    transform-origin: 55px 13px;
+    pointer-events: none;
+    user-select: none;
+    line-height: 1.2;
+  }
+  .spin-modal .sw-label .ic {
+    font-size: 14px;
+    display: block;
+    margin-bottom: 2px;
+  }
+  /* Center hub of the wheel */
+  .spin-modal .sw-hub {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 70px; height: 70px;
+    margin-left: -35px; margin-top: -35px;
+    background: radial-gradient(circle, var(--bg-3), var(--bg));
+    border: 4px solid var(--lime);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    color: var(--lime);
+    text-shadow: 0 0 8px var(--lime);
+    box-shadow: 0 0 18px rgba(255,200,87,0.35), inset 0 0 12px rgba(0,0,0,0.6);
+    z-index: 2;
+  }
+  /* Pointer at top of wheel */
+  .spin-modal .sw-pointer {
+    position: absolute;
+    top: -12px; left: 50%;
+    margin-left: -16px;
+    width: 0; height: 0;
+    border-left: 16px solid transparent;
+    border-right: 16px solid transparent;
+    border-top: 32px solid var(--red);
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
+    z-index: 3;
+  }
+  .spin-modal .sw-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+  }
+  .spin-modal .sw-result {
+    min-height: 38px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--bg-4);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+  }
+  .spin-modal .sw-result.good { color: var(--lime); border-color: var(--lime); animation: sw-flash 0.5s ease; }
+  .spin-modal .sw-result.bad  { color: var(--red);  border-color: var(--red);  animation: sw-shake 0.5s ease; }
+  @keyframes sw-flash {
+    0%   { background: rgba(255,200,87,0.4); transform: scale(1); }
+    50%  { background: rgba(255,200,87,0.7); transform: scale(1.04); }
+    100% { background: rgba(255,255,255,0.04); transform: scale(1); }
+  }
+  @keyframes sw-shake {
+    0%,100% { transform: translateX(0); }
+    25%     { transform: translateX(-6px); }
+    50%     { transform: translateX(6px); }
+    75%     { transform: translateX(-3px); }
+  }
+  .spin-modal .sw-actions {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  }
+  .spin-modal .sw-btn {
+    padding: 12px 18px;
+    background: var(--lime);
+    color: var(--bg);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(255,200,87,0.32);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .spin-modal .sw-btn.paid { background: var(--orange); }
+  .spin-modal .sw-btn.close { background: var(--bg-4); color: var(--ink); }
+  .spin-modal .sw-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .spin-modal .sw-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(255,200,87,0.42);
+  }
+  /* Util-row 🎰 spin button */
+  .util-btn.spin-btn {
+    background: linear-gradient(135deg, var(--lime), var(--orange)) !important;
+    color: var(--bg) !important;
+    font-weight: 800;
+    box-shadow: 0 4px 14px rgba(255,200,87,0.32);
+  }
+  .util-btn.spin-btn.has-free::after {
+    content: '·';
+    color: var(--bg);
+    font-weight: 900;
+    margin-left: 6px;
+    animation: free-pulse 1s ease-in-out infinite;
+  }
+  @keyframes free-pulse {
+    0%,100% { opacity: 0.4; transform: scale(1); }
+    50%     { opacity: 1; transform: scale(1.6); }
+  }
+
   /* ---------- IN-GAME PERK BAR ---------- */
   .perk-bar {
     position: fixed;
@@ -2224,6 +2418,7 @@
     <div class="util-row">
       <button class="util-btn" onclick="openProfile()">👤 PROFILE</button>
       <button class="util-btn" onclick="openShop()">💰 SHOP</button>
+      <button class="util-btn spin-btn" id="spinBtn" onclick="openSpinWheel()">🎰 SPIN</button>
       <button class="util-btn" onclick="openStats()">📊 STATS &amp; BADGES</button>
     </div>
 
@@ -2319,6 +2514,34 @@
       <div class="perk-chip" id="perkHint" title="Hints for Type It"><span class="icon">💡</span><span class="count">0</span></div>
       <div class="perk-chip perk-coin-chip" id="perkCoins" title="Coins"><span class="icon">💰</span><span class="count">0</span></div>
       <button class="perk-shop-btn" onclick="openShop()">+ BUY</button>
+    </div>
+    <!-- Wheel of Fortune modal — 1 free spin/day + paid extra spins (max 5/day) -->
+    <div class="spin-modal" id="spinModal" aria-hidden="true">
+      <div class="sw-card">
+        <h2>🎰 WHEEL OF FORTUNE</h2>
+        <div class="sw-sub">Daily luck · coins · perks · ruin</div>
+        <div class="sw-rim">
+          <div class="sw-pointer"></div>
+          <div class="sw-wheel" id="spinWheel">
+            <div class="sw-label" style="transform: rotate(22.5deg) translateY(-105px);"><span class="ic">💎</span>JACKPOT</div>
+            <div class="sw-label" style="transform: rotate(67.5deg) translateY(-105px);"><span class="ic">💰💰</span>+15</div>
+            <div class="sw-label" style="transform: rotate(112.5deg) translateY(-105px);"><span class="ic">💰</span>+5</div>
+            <div class="sw-label" style="transform: rotate(157.5deg) translateY(-105px);"><span class="ic">❤️</span>+LIFE</div>
+            <div class="sw-label" style="transform: rotate(202.5deg) translateY(-105px);"><span class="ic">💡</span>+HINTS</div>
+            <div class="sw-label" style="transform: rotate(247.5deg) translateY(-105px);"><span class="ic">💸</span>-5</div>
+            <div class="sw-label" style="transform: rotate(292.5deg) translateY(-105px);"><span class="ic">💀</span>-10</div>
+            <div class="sw-label" style="transform: rotate(337.5deg) translateY(-105px);"><span class="ic">🪤</span>BUST</div>
+          </div>
+          <div class="sw-hub">SPIN</div>
+        </div>
+        <div class="sw-status" id="swStatus">Free spin ready · 0/5 paid spins used</div>
+        <div class="sw-result" id="swResult">Hit SPIN to test your luck.</div>
+        <div class="sw-actions">
+          <button class="sw-btn" id="swFreeBtn" onclick="doSpin(false)">FREE SPIN</button>
+          <button class="sw-btn paid" id="swPaidBtn" onclick="doSpin(true)">PAY 8💰</button>
+          <button class="sw-btn close" onclick="closeSpinWheel()">CLOSE</button>
+        </div>
+      </div>
     </div>
     <!-- Wrong-answer teaching modal — pauses the game so Corbin sees the right answer -->
     <div class="wrong-modal" id="wrongModal" aria-hidden="true">
@@ -3171,6 +3394,7 @@ function goHome() {
   renderCoinChip(false);
   renderDailyChallenge();
   renderModeLocks();
+  if (typeof renderSpinStatus === 'function') renderSpinStatus();
 }
 function exitRange() {
   rActive = false;
@@ -4148,6 +4372,162 @@ document.addEventListener('keydown', e => {
 // Strip Type-It-style number prefix so kids type "Progressive Movement" not "1. Progressive Movement"
 function stripTermPrefix(s) {
   return (s || '').replace(/^\d+[a-z]?\.\s*/i, '');
+}
+
+// ---------- WHEEL OF FORTUNE ----------
+// 8 wedges (45° each). Position 0 = top-right wedge (0°-45°), going clockwise.
+// EV per spin ≈ +6 coins. Paid spin costs 8 → slightly negative EV; free is pure bonus.
+const SPIN_OUTCOMES = [
+  { id: 'jackpot', label: '🎰 JACKPOT!',         delta: 50,  weight: 0.05 },                       // wedge 0
+  { id: 'big',     label: '💰💰 +15 coins',       delta: 15,  weight: 0.12 },                       // wedge 1
+  { id: 'small',   label: '💰 +5 coins',          delta: 5,   weight: 0.20 },                       // wedge 2
+  { id: 'life',    label: '❤️ EXTRA LIFE',        delta: 0, item: 'extra_life', itemQty: 1, weight: 0.12 }, // wedge 3
+  { id: 'hint',    label: '💡 +2 HINTS',          delta: 0, item: 'hint',       itemQty: 2, weight: 0.12 }, // wedge 4
+  { id: 'tax',     label: '💸 LOST 5 coins',      delta: -5,  weight: 0.12 },                       // wedge 5
+  { id: 'wipeout', label: '💀 LOST 10 coins',     delta: -10, weight: 0.10 },                       // wedge 6
+  { id: 'bust',    label: '🪤 BUST — nothing happens', delta: 0, weight: 0.17 },                    // wedge 7
+];
+const SPIN_PAID_COST = 8;
+const SPIN_DAILY_PAID_CAP = 5;
+let spinInProgress = false;
+
+function getSpinDaily() {
+  const today = _todayISO();
+  let log = safeParseJSON(localStorage.getItem('cram_spin_log'), {});
+  const maxDate = log.maxDate || log.date || '';
+  if (maxDate && today < maxDate) return log; // clock rollback — preserve
+  if (log.date !== today) { log.date = today; log.freeUsed = false; log.paidCount = 0; }
+  if (!log.maxDate || today > log.maxDate) log.maxDate = today;
+  return log;
+}
+function saveSpinDaily(log) {
+  localStorage.setItem('cram_spin_log', JSON.stringify(log));
+}
+function _weightedPickOutcome() {
+  let r = Math.random();
+  for (const o of SPIN_OUTCOMES) {
+    r -= o.weight;
+    if (r <= 0) return o;
+  }
+  return SPIN_OUTCOMES[SPIN_OUTCOMES.length - 1];
+}
+function renderSpinStatus() {
+  const log = getSpinDaily();
+  const statusEl = $('swStatus');
+  if (statusEl) {
+    const freeTxt = log.freeUsed ? 'used' : 'ready';
+    statusEl.textContent = `Free spin ${freeTxt} · ${log.paidCount}/${SPIN_DAILY_PAID_CAP} paid spins used today`;
+  }
+  const freeBtn = $('swFreeBtn');
+  if (freeBtn) {
+    freeBtn.disabled = !!log.freeUsed || spinInProgress;
+    freeBtn.textContent = log.freeUsed ? 'FREE SPIN (USED)' : 'FREE SPIN';
+  }
+  const paidBtn = $('swPaidBtn');
+  if (paidBtn) {
+    const noCoin = getCoins() < SPIN_PAID_COST;
+    const capped = log.paidCount >= SPIN_DAILY_PAID_CAP;
+    paidBtn.disabled = noCoin || capped || spinInProgress;
+    paidBtn.textContent = capped ? 'PAID CAP HIT' : noCoin ? `NEED ${SPIN_PAID_COST}💰` : `PAY ${SPIN_PAID_COST}💰`;
+  }
+  // Util-row indicator: pulse if a free spin is available
+  const spinBtn = $('spinBtn');
+  if (spinBtn) spinBtn.classList.toggle('has-free', !log.freeUsed);
+}
+function openSpinWheel() {
+  Sound.click();
+  const m = $('spinModal'); if (!m) return;
+  m.classList.add('active');
+  m.setAttribute('aria-hidden', 'false');
+  // Reset wheel position so it doesn't visually jump from last spin
+  const wheel = $('spinWheel');
+  if (wheel) { wheel.style.transition = 'none'; wheel.style.transform = 'rotate(0deg)'; void wheel.offsetWidth; }
+  $('swResult').textContent = 'Hit SPIN to test your luck.';
+  $('swResult').className = 'sw-result';
+  renderSpinStatus();
+}
+function closeSpinWheel() {
+  const m = $('spinModal'); if (!m) return;
+  m.classList.remove('active');
+  m.setAttribute('aria-hidden', 'true');
+  Sound.click();
+  renderSpinStatus(); // refresh util-row dot
+}
+function doSpin(isPaid) {
+  if (spinInProgress) return;
+  const log = getSpinDaily();
+  if (!isPaid && log.freeUsed) { showSnack('Free spin used. Pay 8💰 or come back tomorrow.'); return; }
+  if (isPaid && log.paidCount >= SPIN_DAILY_PAID_CAP) { showSnack(`Daily spin cap (${SPIN_DAILY_PAID_CAP}/day). Back tomorrow.`); return; }
+  if (isPaid && !spendCoins(SPIN_PAID_COST)) { showSnack(`Need ${SPIN_PAID_COST} coins to spin`); return; }
+
+  if (isPaid) log.paidCount++;
+  else log.freeUsed = true;
+  saveSpinDaily(log);
+
+  const outcome = _weightedPickOutcome();
+  const idx = SPIN_OUTCOMES.indexOf(outcome);
+
+  const segments = SPIN_OUTCOMES.length;
+  const anglePerSegment = 360 / segments;
+  // Land the pointer in the middle of wedge `idx`. Wheel spins clockwise (negative rotation).
+  // To land wedge i at 12 o'clock, the wheel must rotate so wedge center is at -90deg from start.
+  // Wedge i center angle (from wheel start) = i*45 + 22.5. Pointer is at 270deg (top, which is -90deg).
+  // We want: (wedge_center + rotation) % 360 = 270 (mod 360). So rotation = 270 - (i*45 + 22.5) mod 360.
+  const wedgeCenter = idx * anglePerSegment + anglePerSegment / 2;
+  let baseRot = (270 - wedgeCenter + 360) % 360;
+  // Add 5+ full rotations for the spinning effect
+  const fullRotations = 5 + Math.floor(Math.random() * 3);
+  const finalRotation = fullRotations * 360 + baseRot;
+
+  const wheel = $('spinWheel');
+  if (wheel) {
+    spinInProgress = true;
+    Sound.click();
+    wheel.style.transition = 'transform 3.4s cubic-bezier(0.18, 0.85, 0.22, 1)';
+    wheel.style.transform = `rotate(${finalRotation}deg)`;
+    $('swResult').textContent = 'Spinning…';
+    $('swResult').className = 'sw-result';
+    renderSpinStatus();
+    setTimeout(() => {
+      _applySpinOutcome(outcome);
+      spinInProgress = false;
+      renderSpinStatus();
+    }, 3450);
+  }
+}
+function _applySpinOutcome(outcome) {
+  const res = $('swResult');
+  let cls = 'sw-result';
+  if (outcome.delta > 0) {
+    addCoins(outcome.delta);
+    cls += ' good';
+    fireConfetti(outcome.delta >= 30 ? 160 : 60);
+    Sound.victory();
+  } else if (outcome.delta < 0) {
+    const cur = getCoins();
+    const take = Math.min(cur, -outcome.delta);
+    if (take > 0) {
+      // Use the spendCoins guarded path
+      spendCoins(take);
+    }
+    if (take < -outcome.delta) {
+      // Couldn't take the full amount because user is broke
+      outcome = Object.assign({}, outcome, { label: outcome.label + ' (only had ' + take + ')' });
+    }
+    cls += ' bad';
+    Sound.wrong();
+  } else if (outcome.item) {
+    bumpInventory(outcome.item, outcome.itemQty || 1);
+    cls += ' good';
+    fireConfetti(40);
+    Sound.victory();
+  } else {
+    // BUST
+    cls += '';
+    Sound.click();
+  }
+  res.className = cls;
+  res.textContent = outcome.label;
 }
 // All 9 game modes count toward 'all_modes'. 'all_games' (Arcade Champ) is the older 5-mode milestone.
 const ALL_MODE_IDS = ['flash','quiz','match','type','surv','range','blitz','memory','boss'];
