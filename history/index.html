@@ -2137,10 +2137,10 @@
     <div class="final-sim-cta" onclick="startFinalSim()" role="button" tabindex="0">
       <div class="fs-tag">⚠ FINAL SIMULATION TEST · HISTORY ONLY</div>
       <div class="fs-headline">Think you'd pass <em>tomorrow</em>?</div>
-      <p class="fs-blurb">25 questions · 5 sec each · ALL 102 history terms shuffled · no topic safety net. Get a grade letter at the end. This is the dress rehearsal.</p>
+      <p class="fs-blurb">25 questions · 12 sec each · ALL 102 history terms shuffled · no topic safety net. Get a grade letter at the end. This is the dress rehearsal.</p>
       <div class="fs-meta">
         <span><b>25</b> Qs</span><span class="dot"></span>
-        <span><b>5s</b> per Q</span><span class="dot"></span>
+        <span><b>12s</b> per Q</span><span class="dot"></span>
         <span>NO LIVES</span><span class="dot"></span>
         <span>GRADE LETTER</span>
       </div>
@@ -4493,7 +4493,7 @@ function exitBossMode() {
 // ---------- FINAL SIMULATION (per-subject finals dress rehearsal) ----------
 let finalSimMode = false;
 const FINAL_SIM_Q_COUNT = 25;
-const FINAL_SIM_Q_TIME = 5000;
+const FINAL_SIM_Q_TIME = 12000; // 12s — enough time to actually read the definition
 function startFinalSim() {
   ensureAudio();
   exitBossMode();
